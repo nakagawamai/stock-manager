@@ -504,7 +504,7 @@ const USER_ID=(()=>{
   })();
 })();
 
-// JSONBin のBin IDをlocalStorageで管理（IDごとに1つのBin）
+// JSONBin のBin IDをlocalStorageで管理
 function getBinKey(){return `bichiku_bin_${USER_ID}`;}
 
 function getSaveData(){
@@ -514,6 +514,29 @@ function getSaveData(){
     women:S.women,milkType:S.milkType,agreed:S.agreed,
     savedAt:new Date().toISOString()
   };
+}
+
+// BinIDをURLに反映
+function setBinInUrl(binId){
+  try{
+    const url=new URL(window.location.href);
+    if(url.searchParams.get('bin')!==binId){
+      url.searchParams.set('bin',binId);
+      window.history.replaceState({},'',url.toString());
+    }
+  }catch(e){}
+}
+
+// BinIDを取得（URL優先→localStorage）
+function getBinId(){
+  const params=new URLSearchParams(window.location.search);
+  return params.get('bin')||localStorage.getItem(getBinKey())||null;
+}
+
+// BinIDを保存
+function storeBinId(binId){
+  localStorage.setItem(getBinKey(),binId);
+  setBinInUrl(binId);
 }
 
 // クラウド保存（debounce付き）
@@ -526,7 +549,7 @@ function save(){
 
 async function saveToCloud(){
   const data=getSaveData();
-  let binId=localStorage.getItem(getBinKey());
+  const binId=getBinId();
   try{
     if(binId){
       await fetch(`${JBIN_URL}/${binId}`,{
@@ -535,7 +558,6 @@ async function saveToCloud(){
         body:JSON.stringify(data)
       });
     } else {
-      // 新規Bin作成（Bin名にUSER_IDを設定）
       const res=await fetch(JBIN_URL,{
         method:'POST',
         headers:{
@@ -548,27 +570,17 @@ async function saveToCloud(){
       });
       const json=await res.json();
       if(json.metadata?.id){
-        binId=json.metadata.id;
-        localStorage.setItem(getBinKey(),binId);
-        // URLにbinIdも付与して別デバイスから直接引けるようにする
-        try{
-          const url=new URL(window.location.href);
-          url.searchParams.set('bin',binId);
-          window.history.replaceState({},'',url.toString());
-        }catch(e){}
+        storeBinId(json.metadata.id);
       }
     }
   }catch(e){}
 }
 
 async function loadFromCloud(){
-  // URLのbinパラメータ優先（シェア時）→ なければlocalStorage
-  const params=new URLSearchParams(window.location.search);
-  const binFromUrl=params.get('bin');
-  const binId=binFromUrl||localStorage.getItem(getBinKey());
+  const binId=getBinId();
   if(!binId)return null;
-  // binIdをlocalStorageに保存（別デバイスでも以降使えるように）
-  if(binFromUrl)localStorage.setItem(getBinKey(),binFromUrl);
+  // BinIDをlocalStorageとURLに保存
+  storeBinId(binId);
   try{
     const res=await fetch(`${JBIN_URL}/${binId}/latest`,{
       headers:{'X-Master-Key':JBIN_KEY}
@@ -621,12 +633,21 @@ const S={
 };
 // 起動時：localStorageで即時描画→クラウドで上書き更新
 load();
-// URLにIDがなければ付与（Vercel環境用・replaceStateで履歴を汚さない）
+// URLにIDがなければ付与（Vercel環境用）
 try{
   const params=new URLSearchParams(window.location.search);
+  const url=new URL(window.location.href);
+  let changed=false;
   if(!params.get('id')){
-    const url=new URL(window.location.href);
     url.searchParams.set('id',USER_ID);
+    changed=true;
+  }
+  // URLにbinがある場合はlocalStorageに保存
+  const binFromUrl=params.get('bin');
+  if(binFromUrl){
+    localStorage.setItem(getBinKey(),binFromUrl);
+  }
+  if(changed){
     window.history.replaceState({screen:S.screen},'',url.toString());
   } else {
     window.history.replaceState({screen:S.screen},'',window.location.href);
@@ -636,7 +657,7 @@ try{
 window.addEventListener('popstate',(e)=>{
   if(e.state&&e.state.screen){
     S.screen=e.state.screen;
-    render(false); // 履歴を積まずにrender
+    render(false);
   }
 });
 render();
