@@ -511,7 +511,8 @@ function getSaveData(){
   return{
     screen:S.screen,tab:S.tab,members:S.members,days:S.days,
     style:S.style,amount:S.amount,items:S.items,filterCat:S.filterCat,
-    women:S.women,milkType:S.milkType,savedAt:new Date().toISOString()
+    women:S.women,milkType:S.milkType,agreed:S.agreed,
+    savedAt:new Date().toISOString()
   };
 }
 
@@ -571,8 +572,15 @@ function applyData(d){
     members:d.members||S.members,days:d.days||7,
     style:d.style||'std',amount:d.amount||'std',items:d.items||[],
     women:d.women||0,milkType:d.milkType||'liquid',
-    filterCat:d.filterCat||'すべて',savedAt:d.savedAt||null
+    filterCat:d.filterCat||'すべて',savedAt:d.savedAt||null,
+    agreed:d.agreed||false
   });
+  // データがある＝設定済みなのでmain画面を強制
+  if(d.items&&d.items.length>0){
+    S.screen='main';
+    S.tab=d.tab||'dashboard';
+    S.agreed=true;
+  }
 }
 
 function load(){
