@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>備蓄管理アプリ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F1ED;--sur:#fff;--dk:#1C1C1E;--bdr:#E0E0E0;
+  --grn:#15803D;--ylw:#A16207;--red:#B91C1C;
+  --c1:#C2410C;--c1b:#FFF7ED;--c1l:#FED7AA;
+  --c2:#15803D;--c2b:#F0FDF4;--c2l:#BBF7D0;
+  --c3:#1D4ED8;--c3b:#EFF6FF;--c3l:#BFDBFE;
+  --c4:#7E22CE;--c4b:#FDF4FF;--c4l:#E9D5FF;
+  --c5:#BE123C;--c5b:#FFF1F2;--c5l:#FECDD3;
+  --c6:#5B21B6;--c6b:#F5F3FF;--c6l:#DDD6FE;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Noto Sans JP',sans-serif;background:#fff;color:var(--dk);font-size:16px;line-height:1.6;}
+
+/* ── ヘッダー ── */
+.hd{background:#1a3a5c;color:#fff;padding:0 14px;position:fixed;top:0;left:0;right:0;z-index:102;}
+.hd-in{display:flex;align-items:center;justify-content:space-between;height:56px;max-width:680px;margin:0 auto;}
+.logo{font-weight:900;font-size:18px;}
+.bdg{border-radius:20px;padding:5px 14px;font-size:17px;font-weight:700;color:#fff;background:#16A34A;}
+.bdg.w{background:#DC2626;}.bdg.d{background:#DC2626;}
+
+/* 設定ボタン帯・コピーボタン帯（タブ直下に固定） */
+.set-bar{background:var(--sur);border-bottom:2px solid var(--bdr);position:fixed;left:0;right:0;z-index:100;padding:16px 12px;}
+.set-bar-btn{display:block;width:100%;max-width:680px;margin:0 auto;padding:16px 18px;
+             background:#DC2626;border:none;border-radius:12px;cursor:pointer;font-family:inherit;
+             font-size:16px;font-weight:700;color:#fff;text-align:center;}
+.set-bar-btn:active{opacity:.75;}
+
+/* タブ */
+.tnav{background:var(--sur);border-bottom:2px solid var(--bdr);position:fixed;top:56px;left:0;right:0;z-index:101;}
+.tnav-in{display:flex;max-width:680px;margin:0 auto;}
+.tb{flex:1;padding:14px 4px;background:none;border:none;border-bottom:4px solid transparent;
+    font-weight:500;font-size:15px;cursor:pointer;color:#555;font-family:inherit;min-height:52px;}
+.tb.on{border-bottom-color:var(--dk);font-weight:900;color:var(--dk);}
+
+main{max-width:680px;margin:0 auto;padding:14px 12px 110px;}
+main.no-setbar{padding-top:112px;}
+.card{background:var(--sur);border-radius:16px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.06);margin-bottom:12px;}
+
+/* ── セットアップ ── */
+.sup-ttl{font-weight:900;font-size:22px;margin-bottom:4px;}
+.sup-sub{color:#333;font-size:15px;margin-bottom:18px;line-height:1.6;}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.mitem{background:var(--bg);border-radius:14px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.mlbl{font-weight:700;font-size:13px;color:#111;text-align:center;line-height:1.5;}
+.mctr{display:flex;align-items:center;gap:6px;}
+.mcbtn{width:44px;height:44px;border-radius:50%;border:2px solid #777;background:var(--sur);cursor:pointer;
+       font-size:20px;display:flex;align-items:center;justify-content:center;font-family:inherit;color:#111;}
+.mcbtn.p{background:var(--dk);color:#fff;border:none;}
+.mcval{font-weight:900;font-size:24px;min-width:28px;text-align:center;color:#111;}
+.trow{background:var(--bg);border-radius:12px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.dgrid{display:flex;gap:8px;margin-bottom:8px;}
+.dbtn{flex:1;padding:14px 0;border-radius:12px;border:2px solid #888;background:var(--sur);color:#222;
+      font-weight:700;cursor:pointer;font-size:15px;font-family:inherit;min-height:52px;}
+.dbtn.on{border-color:var(--dk);background:var(--dk);color:#fff;}
+.note{font-size:14px;color:#444;line-height:1.7;}
+.snote{font-size:13px;color:#555;margin-top:3px;}
+.stbtn{width:100%;padding:18px;background:var(--dk);color:#fff;border:none;border-radius:14px;
+       font-size:18px;font-weight:900;cursor:pointer;font-family:inherit;margin-top:8px;}
+.stbtn:disabled{background:#aaa;}
+
+/* ── 備蓄スタイル選択 ── */
+.style-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:6px;}
+.style-btn{width:100%;padding:16px;border-radius:14px;border:2px solid var(--bdr);background:var(--sur);
+           cursor:pointer;font-family:inherit;text-align:left;transition:all .15s;}
+.style-btn.on{border-color:var(--dk);background:var(--dk);color:#fff;}
+.style-btn.on .style-desc{color:rgba(255,255,255,.75);}
+.style-name{font-weight:700;font-size:16px;display:block;margin-bottom:2px;}
+.style-desc{font-size:13px;color:#666;display:block;line-height:1.5;}
+
+/* ── ダッシュボード ── */
+.scrd{border-radius:18px;padding:20px;margin-bottom:12px;color:var(--dk);background:#fff;border:2px solid var(--dk);}
+.smeta{font-size:14px;color:#666;margin-bottom:2px;}
+.snum{font-weight:900;font-size:50px;line-height:1;}
+.snum span{font-size:22px;font-weight:400;}
+.sst{font-size:16px;font-weight:700;margin-top:6px;}
+.sbw{margin-top:14px;height:10px;background:#E5E5E5;border-radius:5px;}
+.sb{height:100%;border-radius:5px;transition:width .6s;}
+.srow{display:flex;justify-content:space-between;align-items:flex-start;}
+.scirc{width:78px;height:78px;flex-shrink:0;}
+.scirc svg{transform:rotate(-90deg);}
+.abox{background:#F5F5F5;border:2px solid #888;border-radius:14px;padding:14px;margin-bottom:12px;}
+.atit{font-weight:700;font-size:15px;margin-bottom:8px;color:#222;}
+.arow{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #DDD;font-size:15px;color:#222;}
+.arow:last-child{border-bottom:none;}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.ccard{border-radius:14px;padding:16px;background:#fff;border:2px solid #DDD;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.cico{font-size:24px;margin-bottom:6px;}
+.cnm{font-size:13px;font-weight:700;margin-bottom:10px;line-height:1.5;color:#222;}
+.cbw{height:8px;background:#E5E5E5;border-radius:4px;margin-bottom:6px;}
+.cbr{height:100%;border-radius:4px;transition:width .5s;background:var(--dk);}
+.csc{font-size:22px;font-weight:900;color:var(--dk);}
+.rbtn{width:100%;padding:14px;background:var(--sur);border:2px solid #777;border-radius:12px;
+      font-size:15px;cursor:pointer;color:#222;font-family:inherit;font-weight:700;}
+
+/* フィルター */
+.fw{display:flex;gap:7px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+.fw::-webkit-scrollbar{display:none;}
+.fb{white-space:nowrap;padding:10px 15px;border-radius:22px;border:2px solid #888;background:var(--sur);
+    color:#333;font-weight:500;font-size:13px;cursor:pointer;font-family:inherit;min-height:44px;}
+.fb.on{background:var(--dk);color:#fff;border-color:var(--dk);font-weight:700;}
+
+/* 在庫リスト */
+.ilist{display:flex;flex-direction:column;gap:10px;}
+.ic{background:#fff;border-radius:14px;padding:16px;box-shadow:0 1px 6px rgba(0,0,0,.06);}
+.ilist-wrap{display:flex;flex-direction:column;gap:10px;}
+.ic-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.ic-info{flex:1;min-width:0;width:100%;}
+.ic-tags{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:2px;}
+.tag{font-size:13px;border-radius:6px;padding:2px 8px;font-weight:700;}
+.ic-name{font-weight:700;font-size:18px;color:#111;line-height:1.4;}
+.ic-target{font-size:14px;color:#555;margin-top:2px;}
+.ic-note{font-size:13px;color:#666;margin-top:8px;line-height:1.5;width:100%;word-break:break-all;white-space:normal;}
+.ic-edit{background:none;border:none;cursor:pointer;font-size:13px;font-weight:500;
+         color:#888;text-decoration:underline;padding:0;font-family:inherit;}
+.ic-bar-w{height:6px;background:#E5E5E5;border-radius:3px;margin-bottom:8px;}
+.ic-bar{height:100%;border-radius:3px;transition:width .4s;}
+
+/* 在庫操作 */
+.stk-zone{display:flex;flex-direction:column;align-items:center;gap:10px;padding-top:4px;}
+.stk-row{display:flex;gap:10px;width:100%;justify-content:center;}
+.rbtn-main{width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;
+           font-size:22px;font-weight:900;font-family:inherit;
+           display:flex;align-items:center;justify-content:center;transition:opacity .15s;flex-shrink:0;}
+.rbtn-main:active{opacity:.6;}
+.rbtn-main.minus{background:#fff;color:#333;border:2px solid #CCC;}
+.rbtn-main.plus{background:var(--dk);color:#fff;}
+.rbtn-sub{width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;
+          font-size:15px;font-weight:700;font-family:inherit;
+          display:flex;align-items:center;justify-content:center;transition:opacity .15s;flex-shrink:0;}
+.rbtn-sub:active{opacity:.6;}
+.rbtn-sub.minus{background:#fff;color:#555;border:2px solid #CCC;}
+.rbtn-sub.plus{background:#374151;color:#fff;}
+
+/* FAB */
+.fab{position:fixed;bottom:22px;right:16px;width:60px;height:60px;border-radius:50%;background:var(--dk);
+     color:#fff;border:none;font-size:30px;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.3);
+     display:flex;align-items:center;justify-content:center;z-index:200;}
+
+/* 買い物リスト */
+.sh-hd{margin-bottom:14px;}
+.sh-ttl{font-weight:900;font-size:21px;margin-bottom:3px;}
+.sh-sub{font-size:15px;color:#333;}
+.cp-sticky{position:sticky;top:56px;z-index:99;background:var(--sur);padding:8px 0 6px;margin-bottom:8px;}
+.shi-wrap{border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.06);margin-bottom:12px;}
+.shi{background:var(--sur);padding:14px 16px;border-bottom:1px solid var(--bdr);}
+.shi:last-child{border-bottom:none;}
+.shin{font-weight:700;font-size:16px;color:#111;}
+.shic{font-size:13px;color:#555;margin-top:2px;}
+.shnd{font-weight:700;color:#DC2626;font-size:15px;margin-top:4px;}
+.shcr{font-size:13px;color:#666;}
+.cpbtn{width:100%;padding:16px;background:var(--dk);color:#fff;border:none;border-radius:12px;
+       font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;}
+.ebox{background:#ECFDF5;border:2px solid #16A34A;border-radius:16px;padding:30px;text-align:center;}
+.eico{font-size:42px;margin-bottom:8px;}
+.etxt{font-weight:700;color:#14532D;font-size:17px;}
+
+/* モーダル */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:flex;align-items:flex-end;}
+.mb{background:var(--sur);width:100%;max-width:680px;margin:0 auto;border-radius:22px 22px 0 0;
+    padding:22px 16px 36px;max-height:90vh;overflow-y:auto;overflow-x:hidden;}
+.mttl{font-weight:900;font-size:19px;margin-bottom:18px;color:#111;}
+.fg{margin-bottom:14px;}
+.fl{font-size:14px;font-weight:700;color:#222;display:block;margin-bottom:5px;}
+.fi{width:100%;min-width:0;padding:13px;border:2px solid #999;border-radius:10px;
+    font-size:16px;font-family:inherit;outline:none;color:#111;display:block;}
+.fi:focus{border-color:var(--dk);}
+input[type="date"].fi{-webkit-appearance:none;appearance:none;font-size:15px;}
+select.fi{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23333' stroke-width='2' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+.mbtns{display:flex;gap:10px;margin-top:10px;}
+.delbtn{flex:1;padding:15px;background:#FEE2E2;color:#B91C1C;border:2px solid #B91C1C;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
+.savbtn{flex:2;padding:15px;background:var(--dk);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#111;color:#fff;
+       padding:11px 22px;border-radius:22px;font-size:15px;font-weight:700;z-index:999;
+       opacity:0;transition:opacity .3s;pointer-events:none;
+       white-space:normal;text-align:center;width:88%;max-width:420px;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<!-- 法的情報モーダル -->
+<div id="legal-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:flex-end;">
+  <div style="background:#fff;width:100%;max-width:680px;margin:0 auto;border-radius:22px 22px 0 0;padding:24px 16px 40px;max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div style="font-weight:900;font-size:18px;">利用規約・免責事項・プライバシーポリシー</div>
+      <button onclick="document.getElementById('legal-modal').style.display='none'" style="background:none;border:none;font-size:24px;cursor:pointer;color:#555;padding:0;">✕</button>
+    </div>
+
+    <div style="font-weight:900;font-size:16px;margin-bottom:8px;color:#1a3a5c;">利用規約</div>
+    <div style="font-size:14px;color:#333;line-height:1.8;margin-bottom:20px;">
+      <p>本アプリ「備蓄管理アプリ」は、個人および家庭の防災備蓄管理を支援することを目的としています。</p>
+      <p style="margin-top:8px;">・本アプリは個人・家庭での利用を目的としています。商用利用はご遠慮ください。</p>
+      <p>・備蓄量の目安は政府公式資料に基づいていますが、地域・状況に応じてご自身でご判断ください。</p>
+      <p>・アプリの内容は予告なく変更・終了する場合があります。</p>
+    </div>
+
+    <div style="font-weight:900;font-size:16px;margin-bottom:8px;color:#1a3a5c;">免責事項</div>
+    <div style="font-size:14px;color:#333;line-height:1.8;margin-bottom:20px;">
+      <p>・本アプリが提示する備蓄量はあくまで目安であり、実際の災害時における安全・生存を保証するものではありません。</p>
+      <p style="margin-top:8px;">・クラウド保存（JSONBin.io）の障害やサービス終了によるデータ消失について、責任を負いかねます。重要なデータは定期的にご自身でメモ等に記録されることをお勧めします。</p>
+      <p style="margin-top:8px;">・本アプリの利用によって生じた損害について、開発者は一切の責任を負いません。</p>
+    </div>
+
+    <div style="font-weight:900;font-size:16px;margin-bottom:8px;color:#1a3a5c;">プライバシーポリシー</div>
+    <div style="font-size:14px;color:#333;line-height:1.8;margin-bottom:20px;">
+      <p>本アプリが収集・保存するデータは以下の通りです。</p>
+      <p style="margin-top:8px;">【収集するデータ】</p>
+      <p>・家族構成（年齢区分ごとの人数）</p>
+      <p>・備蓄品の在庫数・目標数・期限</p>
+      <p>・設定情報（目標日数・スタイル・備蓄量の目安）</p>
+      <p style="margin-top:8px;">【保存先】</p>
+      <p>・お使いのブラウザのlocalStorage（端末内）</p>
+      <p>・JSONBin.io（クラウドストレージサービス）※URLに含まれるIDで識別します</p>
+      <p style="margin-top:8px;">【第三者提供】</p>
+      <p>・収集したデータを第三者に販売・提供することはありません。</p>
+      <p style="margin-top:8px;">【データ削除】</p>
+      <p>・ブラウザのlocalStorageを削除することで端末内のデータを消去できます。</p>
+      <p>・クラウドデータはJSONBin.ioのサービス上に保存されます。</p>
+    </div>
+
+    <button onclick="document.getElementById('legal-modal').style.display='none'" style="width:100%;padding:16px;background:#1a3a5c;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;">閉じる</button>
+  </div>
+</div>
+<script>
+// ━━ 備蓄スタイル定義（品目の細かさ）━━━━━━━━━━━
+const STYLES=[
+  {id:'std',  name:'標準',           mult:1.0},
+  {id:'rich', name:'バリエーション多め', mult:1.0},
+];
+
+// ━━ 備蓄量の目安（倍率）━━━━━━━━━━━━━━━━━
+const AMOUNTS=[
+  {id:'low',  name:'少なめ', mult:0.8},
+  {id:'std',  name:'標準',   mult:1.0},
+  {id:'high', name:'多め',   mult:1.3},
+];
+
+// ━━ カテゴリ ━━━━━━━━━━━━━━━━━━━━━━━━━
+const CATS=['食料（主食）','食料（主菜・副菜）','水・熱源・調理','医薬品・衛生','防災グッズ','日用消耗品'];
+const CICO={'食料（主食）':'🍚','食料（主菜・副菜）':'🥫','水・熱源・調理':'💧','医薬品・衛生':'💊','防災グッズ':'🔦','日用消耗品':'🧻'};
+const CSTYLE={
+  '食料（主食）':    {b:'var(--c1b)',a:'var(--c1)',l:'var(--c1l)'},
+  '食料（主菜・副菜）':{b:'var(--c2b)',a:'var(--c2)',l:'var(--c2l)'},
+  '水・熱源・調理':  {b:'var(--c3b)',a:'var(--c3)',l:'var(--c3l)'},
+  '医薬品・衛生':    {b:'var(--c4b)',a:'var(--c4)',l:'var(--c4l)'},
+  '防災グッズ':      {b:'var(--c5b)',a:'var(--c5)',l:'var(--c5l)'},
+  '日用消耗品':      {b:'var(--c6b)',a:'var(--c6)',l:'var(--c6l)'},
+};
+
+// ━━ 品目マスター ━━━━━━━━━━━━━━━━━━━━━━━
+// ppd=1人1日量 / fix=固定数 / pp=人数分固定
+// noScale=true : 倍率を掛けない
+// simple:true  : std のみ表示（まとめ版）
+// detail:true  : rich/share のみ表示（個別版）
+// pri:1 = 1次品（緊急持ち出し）/ pri:2 = 2次品（3日間生存）/ pri:3 = 3次品（長期快適）
+const P=[
+
+  // ══ 主食 ─ まとめ版（std）════════════════════
+  {n:'主食類（米・パン・麺等）', cat:'食料（主食）', u:'食分', ppd:3, s1:1, s2:10, simple:true, pri:2, kcal:500,
+   note:'1人1日3食分（約1500kcal）。米・レトルトご飯・カップ麺・乾パン等を組み合わせて備蓄。調理不要なものも混ぜておくと安心'},
+
+  // ══ 主食 ─ 個別版（rich/share）══════════════
+  {n:'米・無洗米',              cat:'食料（主食）', u:'kg',     ppd:0.3,  s1:1, s2:5,  pri:2, kcal:356,
+   note:'100g=356kcal。1人1日0.3kg（約1070kcal）。5kgで約16人日分。ローリングストックに最適'},
+  {n:'パックご飯',              cat:'食料（主食）', u:'パック', ppd:0.43, s1:1, s2:5,  pri:2, kcal:336,
+   note:'1パック200g=336kcal。資料基準：2人7日で6個。湯煎またはそのまま食べられる'},
+  {n:'カップ麺・インスタント麺',cat:'食料（主食）', u:'個',     ppd:0.43, s1:1, s2:5,  pri:2, kcal:350,
+   note:'1個=約350kcal。資料基準：2人7日で6個。お湯が必要。カセットボンベと合わせて備蓄'},
+  {n:'乾麺（そうめん・パスタ等）',cat:'食料（主食）',u:'袋',   ppd:0.29, s1:1, s2:4,  detail:true, pri:3, kcal:1000,
+   note:'1袋(300g)=約1000kcal。資料基準：2人7日で4袋。長期保存可。パスタソース・缶詰と組み合わせて'},
+  {n:'乾パン・クラッカー',      cat:'食料（主食）', u:'袋',     ppd:0.43, s1:1, s2:5,  detail:true, noScale:true, pri:1, kcal:400,
+   note:'1袋=約400kcal。調理不要。発災当日・移動中の即食に（農水省推奨）'},
+  {n:'アルファ化米',            cat:'食料（主食）', u:'食',     ppd:0.86, s1:1, s2:10, detail:true, noScale:true, pri:1, kcal:360,
+   note:'1食=約360kcal。水またはお湯で調理可。停電中でも食べられる非常食の定番'},
+
+  // ══ 主食 ─ 全スタイル共通 ══════════════════
+  {n:'レトルトおかゆ',   cat:'食料（主食）', u:'個', ppd:0.86, s1:1, s2:6, noScale:true, pri:2, kcal:150,
+   note:'1個=約150kcal。高齢者・体調不良時に必須。農水省推奨'},
+  {n:'保存パン（缶詰）', cat:'食料（主食）', u:'缶', ppd:0.14, s1:1, s2:4, perPerson:true, noScale:true, pri:1, kcal:400,
+   note:'1缶=約400kcal。5年以上保存可。調理不要。7日分で家族人数分が目安'},
+
+  // ══ 乳幼児がいる場合のみ ══════════════════
+  // milkType='liquid' → 液体ミルク / milkType='powder' → 粉ミルク3品に置換
+  {n:'液体ミルク',        cat:'食料（主食）',  u:'回分',   ppd:5,  s1:1, s2:15, forBaby:true, noScale:true, milkLiquid:true, pri:1,
+   note:'1人1日5回が目安（3日分=15回）。水・加熱不要で災害時に最適。粉ミルクより優先して備蓄'},
+  {n:'粉ミルク',          cat:'食料（主食）',  u:'缶',     fix:2,  s1:1, s2:3,  forBaby:true, noScale:true, milkPowder:true, milkPowderMain:true, pri:1,
+   note:'調乳には煮沸した水70℃以上が必要。液体ミルクと併用推奨'},
+  {n:'哺乳瓶',            cat:'医薬品・衛生',  u:'本',     fix:2,  s1:1, s2:2,  forBaby:true, noScale:true, milkPowder:true, pri:1,
+   note:'洗浄・消毒できない場合に備えて複数本用意'},
+  {n:'調乳用品（計量スプーン・消毒セット等）', cat:'医薬品・衛生', u:'式', fix:1, s1:1, s2:1, forBaby:true, noScale:true, milkPowder:true, pri:1,
+   note:'使い捨て哺乳瓶や消毒セットを備蓄。断水時は液体ミルクへ切替えを'},
+  {n:'離乳食（レトルト）', cat:'食料（主食）', u:'食', ppd:3, s1:1, s2:9,  forBaby:true, noScale:true, pri:1,
+   note:'1人1日3食分。月齢に合わせた種類を3日分以上用意。アレルギー対応品は多めに'},
+  {n:'おむつ（乳幼児用）', cat:'医薬品・衛生', u:'枚', ppd:5, s1:1, s2:15, forBaby:true, noScale:true, pri:1,
+   note:'1人1日5枚が目安（3日分=15枚）。サイズを確認して備蓄'},
+  {n:'おしりふき',         cat:'医薬品・衛生', u:'パック', fix:3, s1:1, s2:3, forBaby:true, noScale:true, consumable:true, pri:1,
+   note:'断水時の清潔保持に必須。乳幼児がいる場合は多めに'},
+
+  // ══ 高齢者がいる場合のみ ══════════════════
+  {n:'介護食（レトルト・缶詰）', cat:'食料（主食）', u:'食', ppd:3, s1:1, s2:9, forElderly:true, noScale:true, pri:1,
+   note:'1人1日3食分。噛む力が弱い方向けのやわらか食・ムース食を3日分以上備蓄'},
+  {n:'介護用おむつ・パッド',     cat:'医薬品・衛生', u:'枚', ppd:5, s1:1, s2:15, forElderly:true, noScale:true, pri:1,
+   note:'1人1日5枚が目安。要介護の方がいる場合は多めに用意'},
+
+  // ══ 主菜・副菜 ─ まとめ版（std）══════════
+  {n:'肉・魚缶詰（ツナ・サバ・焼き鳥等）', cat:'食料（主菜・副菜）', u:'缶',     ppd:1, s1:1, s2:21, simple:true, perPerson:true, pri:2, kcal:150,
+   note:'1缶=約150kcal。1人1日1缶が目安（農水省資料）。ツナ・サバ・イワシ・焼き鳥・コンビーフ等を組み合わせて備蓄'},
+  {n:'レトルト食品（カレー・牛丼等）',      cat:'食料（主菜・副菜）', u:'パック', ppd:1, s1:1, s2:21, simple:true, perPerson:true, pri:2, kcal:250,
+   note:'1パック=約250kcal。1人1日1パックが目安（農水省資料）。缶詰と交互に使うとバリエーションが増える'},
+  {n:'野菜・豆類缶詰（トマト・豆類等）',    cat:'食料（主菜・副菜）', u:'缶',     ppd:0.29, s1:1, s2:6, simple:true, perPerson:true, pri:3, kcal:80,
+   note:'1缶=約80kcal。トマト缶・大豆水煮缶・果物缶等をまとめて管理。4缶を目安に'},
+
+  // ══ 主菜・副菜 ─ 個別版（rich/share）══════════
+  {n:'ツナ缶',               cat:'食料（主菜・副菜）', u:'缶',    ppd:0.4,  s1:1, s2:6, detail:true, pri:2, kcal:140,
+   note:'1缶=約140kcal。良質なたんぱく質源。農水省ガイド最推奨品目'},
+  {n:'サバ缶・イワシ缶',     cat:'食料（主菜・副菜）', u:'缶',    ppd:0.3,  s1:1, s2:6, detail:true, pri:2, kcal:200,
+   note:'1缶=約200kcal。たんぱく質・DHA・EPA豊富。長期保存向き'},
+  {n:'焼き鳥缶',             cat:'食料（主菜・副菜）', u:'缶',    ppd:0.2,  s1:1, s2:4, detail:true, pri:3, kcal:130,
+   note:'1缶=約130kcal。ご飯との相性が良い。プルトップで缶切り不要'},
+  {n:'コンビーフ缶',         cat:'食料（主菜・副菜）', u:'缶',    ppd:0.1,  s1:1, s2:3, detail:true, pri:3, kcal:200,
+   note:'1缶=約200kcal。プルトップ缶。たんぱく質・鉄分豊富'},
+  {n:'レトルトカレー',       cat:'食料（主菜・副菜）', u:'パック',ppd:0.5,  s1:1, s2:8, detail:true, pri:2, kcal:200,
+   note:'1パック=約200kcal。湯煎またはそのまま食べられる'},
+  {n:'レトルト牛丼・親子丼', cat:'食料（主菜・副菜）', u:'パック',ppd:0.3,  s1:1, s2:6, detail:true, pri:3, kcal:280,
+   note:'1パック=約280kcal。ご飯にかけるだけ。バリエーション確保に'},
+  {n:'レトルトパスタソース', cat:'食料（主菜・副菜）', u:'パック',ppd:0.2,  s1:1, s2:4, detail:true, pri:3, kcal:150,
+   note:'1パック=約150kcal。麺類との組み合わせに。子どもに人気'},
+  {n:'トマト缶',             cat:'食料（主菜・副菜）', u:'缶',    ppd:0.14, s1:1, s2:4, detail:true, perPerson:true, pri:3, kcal:40,
+   note:'1缶=約40kcal。ビタミンC・リコピン補給。料理の幅が広がる'},
+  {n:'大豆・豆類の水煮缶',   cat:'食料（主菜・副菜）', u:'缶',    ppd:0.14, s1:1, s2:4, detail:true, perPerson:true, pri:3, kcal:100,
+   note:'1缶=約100kcal。たんぱく質・食物繊維源。常温で長期保存可'},
+  {n:'果物缶詰',             cat:'食料（主菜・副菜）', u:'缶',    ppd:0.14, s1:1, s2:4, detail:true, perPerson:true, pri:3, kcal:80,
+   note:'1缶=約80kcal。ビタミン・ミネラル補給。子どものおやつにも'},
+
+  // ══ 主菜・副菜 ─ 全スタイル共通 ══════════════
+  {n:'野菜ジュース（紙パック）',           cat:'食料（主菜・副菜）', u:'本',     ppd:1,   s1:1, s2:10, perPerson:true, pri:2, kcal:60,
+   note:'1本=約60kcal。野菜不足補充に必須（農水省強推奨）。1人1日1本'},
+  {n:'梅干し',                             cat:'食料（主菜・副菜）', u:'パック', fix:1,   s1:1, s2:2,  noScale:true, consumable:true, pri:3, kcal:3,
+   note:'副菜・塩分補給・抗菌作用。1パックを目安に'},
+  {n:'のり',                               cat:'食料（主菜・副菜）', u:'袋',     pp:1, s1:1, s2:3, weekly:true, pri:3, kcal:20,
+   note:'1人1袋/週が目安。ご飯のお供。ミネラル補給'},
+  {n:'インスタント味噌汁・スープ',          cat:'食料（主菜・副菜）', u:'袋',     ppd:1,   s1:1, s2:10, perPerson:true, pri:2, kcal:35,
+   note:'1袋=約35kcal。温かい汁物は精神的安定に効果大。味噌汁・コーンスープ・野菜スープ等を組み合わせて'},
+  {n:'チョコレート・飴',                   cat:'食料（主菜・副菜）', u:'袋',     pp:1, s1:1, s2:3, weekly:true, pri:2, kcal:200,
+   note:'1袋=約200kcal。エネルギー補給・精神的安定。子どもに特に重要'},
+  {n:'栄養補助食品（カロリーメイト等）',   cat:'食料（主菜・副菜）', u:'箱',     fix:1, s1:1, s2:4, noScale:true, pp_adult:true, pri:1, kcal:400,
+   note:'1人1箱が目安（乳幼児除く）。発災当日の即食補助に'},
+  {n:'塩',       cat:'食料（主菜・副菜）', u:'袋',     fix:1, s1:1, s2:3, noScale:true, seasoning:true, pri:2, kcal:0,
+   note:'電解質補給・食品保存にも。開封後は密封保存'},
+  {n:'砂糖',     cat:'食料（主菜・副菜）', u:'袋',     fix:1, s1:1, s2:3, noScale:true, seasoning:true, pri:3, kcal:0,
+   note:'エネルギー補給・料理の幅を広げる'},
+  {n:'みそ',     cat:'食料（主菜・副菜）', u:'パック', fix:1, s1:1, s2:3, noScale:true, seasoning:true, pri:2, kcal:0,
+   note:'味噌汁・調理に。農水省ガイド推奨調味料'},
+  {n:'しょうゆ', cat:'食料（主菜・副菜）', u:'本',     fix:1, s1:1, s2:3, noScale:true, seasoning:true, pri:3, kcal:0,
+   note:'何にでも使える万能調味料。小瓶を複数備蓄推奨'},
+  {n:'食用油',   cat:'食料（主菜・副菜）', u:'本',     fix:1, s1:1, s2:3, noScale:true, seasoning:true, pri:3, kcal:0,
+   note:'炒め物・エネルギー補給。開封前は長期保存可'},
+
+  // ══ 水・熱源・調理 ══════════════════════════
+  {n:'飲料水（2Lボトル）',       cat:'水・熱源・調理', u:'本',  ppd:1.5, s1:1,  s2:6,  noScale:true, pri:1,
+   note:'1人1日1.5本（3L）が目安。2人7日分=21本（約2L×6本×2箱）。首相官邸・内閣府基準'},
+  {n:'カセットコンロ',            cat:'水・熱源・調理', u:'台',  fix:1,   s1:1,  s2:1,  noScale:true, pri:2,
+   note:'首相官邸チェックリスト必須項目'},
+  {n:'カセットボンベ',            cat:'水・熱源・調理', u:'本',  ppd:0.86, s1:1,  s2:6,               pri:2,
+   note:'1人1週間6本が目安（農水省資料）。2人7日分=約12本'},
+  {n:'紙皿',                      cat:'水・熱源・調理', u:'枚',  ppd:3,   s1:10, s2:50,              pri:2,
+   note:'断水時に洗い物を省く。農水省ガイド推奨'},
+  {n:'紙コップ',                  cat:'水・熱源・調理', u:'個',  ppd:3,   s1:10, s2:50,              pri:2,
+   note:'飲み物・スープ用。断水時の衛生確保に'},
+  {n:'割り箸',                    cat:'水・熱源・調理', u:'膳',  ppd:3,   s1:10, s2:50,              pri:2,
+   note:'洗い物不要。農水省ガイド推奨'},
+  {n:'ラップフィルム',            cat:'水・熱源・調理', u:'本',  fix:1,   s1:1,  s2:2,  noScale:true, consumable:true, pri:2,
+   note:'食器に巻いて洗い物を節水。1本を目安に（農水省推奨）'},
+
+  // ══ 医薬品・衛生 ════════════════════════════
+  {n:'携帯トイレ',              cat:'医薬品・衛生', u:'回分',  ppd:5,  s1:5,  s2:20, noScale:true, pri:1,
+   note:'1人1日5回が目安（内閣府基準）。首相官邸必須項目'},
+  {n:'マスク',                  cat:'医薬品・衛生', u:'枚',    ppd:1,  s1:3,  s2:21, perPerson:true,              pri:1,
+   note:'1人1日1枚が目安。2人7日分=14枚。感染症・粉塵対策'},
+  {n:'アルコール消毒液',        cat:'医薬品・衛生', u:'本',    fix:1,  s1:1,  s2:2,  noScale:true, consumable:true, pri:1,
+   note:'感染症対策必須品。1本を目安に備蓄。首相官邸リスト掲載'},
+  {n:'解熱鎮痛剤',              cat:'医薬品・衛生', u:'錠',    fix:30, s1:5,  s2:30, noScale:true, consumable:true, pri:1,
+   note:'常備薬の筆頭。持病薬は別途2週間分以上用意'},
+  {n:'胃腸薬',                  cat:'医薬品・衛生', u:'錠',    fix:20, s1:5,  s2:20, noScale:true, consumable:true, pri:2,
+   note:'食生活の変化による胃腸トラブルに備える'},
+  {n:'絆創膏',                  cat:'医薬品・衛生', u:'箱',    fix:1,  s1:1,  s2:2,  noScale:true, consumable:true, pri:1,
+   note:'応急処置の基本。1箱備蓄。首相官邸チェックリスト必須'},
+  {n:'包帯・ガーゼ',            cat:'医薬品・衛生', u:'セット',fix:1,  s1:1,  s2:4,  noScale:true, consumable:true, pri:2,
+   note:'30日ごとに1セットが目安'},
+  {n:'体温計',                  cat:'医薬品・衛生', u:'本',    fix:1,  s1:1,  s2:1,  noScale:true, pri:2,
+   note:'感染症対策用品。首相官邸・目黒区リスト掲載'},
+  {n:'使い捨て手袋',            cat:'医薬品・衛生', u:'パック',fix:1,  s1:1,  s2:2,  noScale:true, consumable:true, pri:2,
+   note:'衛生管理・感染対策に。1パック（10〜20双入り）を目安に'},
+  {n:'ウェットティッシュ',      cat:'医薬品・衛生', u:'パック',pp:1, s1:1, s2:4, noScale:true, weekly:true, pri:1,
+   note:'断水時の清潔保持に必須。2パックを目安に。首相官邸推奨'},
+  {n:'歯ブラシ',                cat:'医薬品・衛生', u:'本',    pp:1, s1:1, s2:2, noScale:true, monthly_pp:true, pri:3,
+   note:'1人1本/月が目安。口腔ケアは感染症予防に重要'},
+  {n:'歯磨き粉',                cat:'医薬品・衛生', u:'本',    pp:1, s1:1, s2:2, noScale:true, monthly_pp:true, pri:3,
+   note:'1人1本/月が目安。断水時はうがいと組み合わせて使用'},
+  {n:'生理用品',                cat:'医薬品・衛生', u:'枚', ppd:3, s1:1, s2:15, forWoman:true, noScale:true, menstrual:true, pri:2,
+   note:'1人1日3枚が目安。女性の人数×日数分を備蓄（首相官邸リスト掲載）'},
+  {n:'お薬手帳コピー・処方薬',  cat:'医薬品・衛生', u:'部',    fix:1,  s1:1,  s2:1,  noScale:true, pri:1,
+   note:'持病の薬は2週間分以上。首相官邸チェックリスト'},
+
+  // ══ 防災グッズ ══════════════════════════════
+  {n:'懐中電灯',             cat:'防災グッズ', u:'本',  fix:2,  s1:1, s2:2,  noScale:true, pri:1,
+   note:'首相官邸必須。LEDタイプ推奨。寝室・玄関に各1本'},
+  {n:'乾電池（単3）',        cat:'防災グッズ', u:'本',  fix:2, s1:4, s2:20, noScale:true, battery_aa:true, pri:1,
+   note:'3日分の目安：あかり3本×人数＋モバイルバッテリー12本×人数＋ラジオ2本。詳細は <a href="https://panasonic.jp/battery/contents/safety/drycell.html" target="_blank" style="color:#1D4ED8;">パナソニック公式サイト</a> をご確認ください'},
+  {n:'乾電池（単4）',        cat:'防災グッズ', u:'本',  fix:8, s1:4, s2:12, noScale:true, pri:2,
+   note:'世帯で3日分=8本が目安。小型懐中電灯・体温計・小型ラジオ用'},
+  {n:'携帯ラジオ',           cat:'防災グッズ', u:'台',  fix:1,  s1:1, s2:1,  noScale:true, pri:1,
+   note:'停電時の情報収集。首相官邸チェックリスト必須'},
+  {n:'モバイルバッテリー',   cat:'防災グッズ', u:'個',  fix:2,  s1:1, s2:2,  noScale:true, pri:1,
+   note:'スマホ・小型機器の電源確保。充電状態を定期確認'},
+  {n:'乾電池式充電器',       cat:'防災グッズ', u:'個',  fix:1,  s1:1, s2:1,  noScale:true, pri:2,
+   note:'停電時のスマホ充電用。首相官邸推奨'},
+  {n:'非常用持ち出し袋',     cat:'防災グッズ', u:'個',  fix:1,  s1:1, s2:1,  noScale:true, pri:1,
+   note:'首相官邸必須。玄関に常時設置。中身を年1回点検'},
+  {n:'ヘルメット・防災頭巾', cat:'防災グッズ', u:'個',  pp:1,   s1:1, s2:1,  noScale:true, pri:1,
+   note:'頭部保護。首相官邸推奨。家族人数分必要'},
+  {n:'軍手',                 cat:'防災グッズ', u:'双',  pp:1,   s1:1, s2:1,  noScale:true, pri:1,
+   note:'がれき撤去・避難時の手の保護。家族人数分'},
+  {n:'ホイッスル',           cat:'防災グッズ', u:'個',  fix:2,  s1:1, s2:2,  noScale:true, pri:1,
+   note:'閉じ込め時の救助要請用。首相官邸推奨'},
+  {n:'ろうそく',             cat:'防災グッズ', u:'本',  fix:10, s1:5, s2:30, noScale:true, biweekly_fix:true, pri:3,
+   note:'14日ごとに10本が目安。停電時の照明補助'},
+  {n:'ライター',             cat:'防災グッズ', u:'個',  fix:3, s1:1, s2:12, noScale:true, weekly_fix:true, pri:2,
+   note:'7日ごとに3個が目安'},
+  {n:'缶切り・万能ナイフ',   cat:'防災グッズ', u:'個',  fix:1,  s1:1, s2:1,  noScale:true, pri:2,
+   note:'プルトップ以外の缶詰に必要。首相官邸リスト'},
+
+  // ══ 日用消耗品 ══════════════════════════════
+  {n:'トイレットペーパー',     cat:'日用消耗品', u:'ロール', ppd:1,   s1:1,  s2:12, perPerson:true,              pri:2,
+   note:'1人1日1ロールが目安。2人7日分=14ロール'},
+  {n:'ティッシュペーパー',     cat:'日用消耗品', u:'パック(5箱)', fix:1, s1:1, s2:8, noScale:true, weekly_fix:true, pri:2,
+   note:'7日ごとに1パック（5箱入り）が目安'},
+  {n:'ゴミ袋（大・45L）',      cat:'日用消耗品', u:'枚',     ppd:2,   s1:5,  s2:20,              pri:2,
+   note:'廃棄物処理・簡易トイレ用袋として。多めに備蓄推奨'},
+  {n:'ポリ袋（Lサイズ）',      cat:'日用消耗品', u:'枚',     ppd:3,   s1:10, s2:50,              pri:2,
+   note:'食品保存・食器代わり・防水袋として多用途'},
+  {n:'新聞紙',                cat:'日用消耗品', u:'部',     fix:10,  s1:5,  s2:10,              pri:3,
+   note:'防寒・食器代わり・スリッパ代わりに活用可'},
+  {n:'下着（替え）',           cat:'日用消耗品', u:'枚',     pp:3, s1:1, s2:3, clothing:true, pri:2,
+   note:'1人3枚が目安。7日ごとに1人3枚加算'},
+  {n:'衣類（着替え）',          cat:'日用消耗品', u:'着',     pp:3, s1:1, s2:3, clothing:true, pri:2,
+   note:'1人3着が目安。7日ごとに1人3着加算'},
+  {n:'タオル',                cat:'日用消耗品', u:'枚',     pp:3,    s1:1,  s2:3,               pri:2,
+   note:'清拭・包帯代わりにも。家族人数分'},
+  {n:'毛布',                  cat:'日用消耗品', u:'枚',     pp:1,    s1:1,  s2:1,  noScale:true, pri:2,
+   note:'家族人数分を用意。首相官邸推奨'},
+  {n:'雨合羽（レインコート）', cat:'日用消耗品', u:'枚',     pp:1,    s1:1,  s2:1,  noScale:true, pri:2,
+   note:'避難時の防寒・防水に。家族人数分'},
+  {n:'使い捨てカイロ',         cat:'日用消耗品', u:'枚',     ppd:1,   s1:3,  s2:10, perPerson:true, pri:2,
+   note:'1人1日1枚が目安（ALSOK資料：3日分=3枚）。寒い時期は多めに'},
+  {n:'防寒着',                 cat:'日用消耗品', u:'着',     pp:1,    s1:1,  s2:1,  noScale:true, pri:2,
+   note:'避難時の防寒に。家族人数分（ALSOK資料）'},
+  {n:'スリッパ・上履き',       cat:'日用消耗品', u:'足',     pp:1,    s1:1,  s2:1,  noScale:true, pri:3,
+   note:'割れたガラス踏み抜き防止。首相官邸推奨。家族人数分'},
+  {n:'現金（小銭含む）',       cat:'日用消耗品', u:'式',     fix:1,   s1:1,  s2:1,  noScale:true, pri:1,
+   note:'停電時は電子決済・ATM使用不可。首相官邸必須'},
+  {n:'保険証コピー',           cat:'日用消耗品', u:'部',     fix:1,   s1:1,  s2:1,  noScale:true, pri:1,
+   note:'避難時の身分証明・医療機関での手続きに必要'},
+];
+
+// ━━ ストレージ ━━━━━━━━━━━━━━━━━━━━━
+const SK='bichiku_v4';
+const JBIN_KEY='$2a$10$wSeduLeytNkyHH8ma4BdwuYcvebSlaLStIu9HuiQD2aGUAajl54qm';
+const JBIN_URL='https://api.jsonbin.io/v3/b';
+
+// URLからIDを取得、なければ生成
+function getOrCreateId(){
+  const params=new URLSearchParams(window.location.search);
+  let id=params.get('id');
+  if(!id){
+    id=crypto.randomUUID();
+    try{
+      const url=new URL(window.location.href);
+      url.searchParams.set('id',id);
+      window.history.replaceState({},'',url.toString());
+    }catch(e){
+      // iframeやプレビュー環境ではlocalStorageにIDを保存
+    }
+    localStorage.setItem('bichiku_user_id', id);
+  }
+  return id;
+}
+const USER_ID=(()=>{
+  const params=new URLSearchParams(window.location.search);
+  return params.get('id') || localStorage.getItem('bichiku_user_id') || (()=>{
+    const id=crypto.randomUUID();
+    localStorage.setItem('bichiku_user_id', id);
+    return id;
+  })();
+})();
+
+// JSONBin のBin IDをlocalStorageで管理（IDごとに1つのBin）
+function getBinKey(){return `bichiku_bin_${USER_ID}`;}
+
+function getSaveData(){
+  return{
+    screen:S.screen,tab:S.tab,members:S.members,days:S.days,
+    style:S.style,amount:S.amount,items:S.items,filterCat:S.filterCat,
+    women:S.women,milkType:S.milkType,savedAt:new Date().toISOString()
+  };
+}
+
+// クラウド保存（debounce付き）
+let saveTimer=null;
+function save(){
+  // localStorageにも即時保存
+  try{localStorage.setItem(SK+'_'+USER_ID,JSON.stringify(getSaveData()));}catch(e){}
+  // クラウドは1秒debounce
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(saveToCloud,1000);
+}
+
+async function saveToCloud(){
+  const data=getSaveData();
+  const binId=localStorage.getItem(getBinKey());
+  try{
+    if(binId){
+      // 既存Binを更新
+      await fetch(`${JBIN_URL}/${binId}`,{
+        method:'PUT',
+        headers:{'Content-Type':'application/json','X-Master-Key':JBIN_KEY},
+        body:JSON.stringify(data)
+      });
+    } else {
+      // 新規Bin作成
+      const res=await fetch(JBIN_URL,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Master-Key':JBIN_KEY,'X-Bin-Private':'false'},
+        body:JSON.stringify(data)
+      });
+      const json=await res.json();
+      if(json.metadata?.id){
+        localStorage.setItem(getBinKey(),json.metadata.id);
+      }
+    }
+  }catch(e){/* オフライン時はlocalStorageのみ */}
+}
+
+async function loadFromCloud(){
+  const binId=localStorage.getItem(getBinKey());
+  if(!binId)return null;
+  try{
+    const res=await fetch(`${JBIN_URL}/${binId}/latest`,{
+      headers:{'X-Master-Key':JBIN_KEY}
+    });
+    if(!res.ok)return null;
+    const json=await res.json();
+    return json.record||null;
+  }catch(e){return null;}
+}
+
+function applyData(d){
+  if(!d)return;
+  Object.assign(S,{
+    screen:d.screen||'setup',tab:d.tab||'dashboard',
+    members:d.members||S.members,days:d.days||7,
+    style:d.style||'std',amount:d.amount||'std',items:d.items||[],
+    women:d.women||0,milkType:d.milkType||'liquid',
+    filterCat:d.filterCat||'すべて',savedAt:d.savedAt||null
+  });
+}
+
+function load(){
+  // まずlocalStorageから復元（即時）
+  try{
+    const d=JSON.parse(localStorage.getItem(SK+'_'+USER_ID)||localStorage.getItem(SK)||'null');
+    applyData(d);
+  }catch(e){}
+}
+
+// ━━ 状態 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const S={
+  screen:'setup',tab:'dashboard',
+  members:[
+    {label:'大人',              count:2},
+    {label:'子ども（小学生〜）', count:1},
+    {label:'高齢者（65歳〜）',   count:0},
+    {label:'乳幼児（未就学児）', count:0},
+  ],
+  women:1,
+  milkType:'liquid',
+  days:7, style:'std', amount:'std', agreed:false,
+  items:[],filterCat:'すべて',modal:null,form:{},savedAt:null
+};
+// 起動時：localStorageで即時描画→クラウドで上書き更新
+load();
+// URLにIDがなければ付与（Vercel環境用・replaceStateで履歴を汚さない）
+try{
+  const params=new URLSearchParams(window.location.search);
+  if(!params.get('id')){
+    const url=new URL(window.location.href);
+    url.searchParams.set('id',USER_ID);
+    window.history.replaceState({screen:S.screen},'',url.toString());
+  } else {
+    window.history.replaceState({screen:S.screen},'',window.location.href);
+  }
+}catch(e){}
+// ブラウザの戻るボタン対応
+window.addEventListener('popstate',(e)=>{
+  if(e.state&&e.state.screen){
+    S.screen=e.state.screen;
+    render(false); // 履歴を積まずにrender
+  }
+});
+render();
+loadFromCloud().then(d=>{
+  if(d){applyData(d);render(false);}
+});
+
+// ━━ 計算 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function totM(){return S.members.reduce((a,m)=>a+m.count,0);}
+function eqv(){
+  const[a,k,e,i]=S.members.map(m=>m.count);
+  return a+(k+e)*0.8+i*0.5;
+}
+function getMult(p){
+  if(p.noScale) return 1;
+  const st=STYLES.find(s=>s.id===S.style)||STYLES[0];
+  const am=AMOUNTS.find(a=>a.id===S.amount)||AMOUNTS[1];
+  return st.mult * am.mult;
+}
+function calcT(p){
+  const mult=getMult(p);
+  const babyCount   =S.members[3].count;
+  const elderlyCount=S.members[2].count;
+  if(p.forBaby)    return Math.max(1,Math.ceil(p.ppd ? p.ppd*babyCount*S.days    : (p.fix||1)));
+  if(p.forElderly) return Math.max(1,Math.ceil(p.ppd ? p.ppd*elderlyCount*S.days : (p.fix||1)));
+  if(p.menstrual)   return Math.max(1,S.women*7*3*Math.ceil(S.days/25)); // 25日ごとに7日分×3枚
+  if(p.forWoman)   return Math.max(1,Math.ceil(p.ppd ? p.ppd*S.women*S.days      : (p.fix||1)));
+  if(p.seasoning)    return Math.max(1,Math.ceil(S.days/30));
+  if(p.consumable)   return Math.max(1,Math.ceil((p.fix||1)*Math.ceil(S.days/30)));
+  if(p.battery_aa)  return Math.max(1,(15*S.members[0].count+15*(S.members[1].count+S.members[2].count)+2)*Math.ceil(S.days/3));
+  if(p.battery_aaa) return Math.max(1,8*(S.members[0].count+S.members[1].count+S.members[2].count+S.members[3].count)*Math.ceil(S.days/3));
+  if(p.weekly)       return Math.max(1,totM()*Math.ceil(S.days/7));
+  if(p.monthly_pp)   return Math.max(1,totM()*Math.ceil(S.days/30));      // 30日ごとに人数分
+  if(p.weekly_fix)   return Math.max(1,(p.fix||1)*Math.ceil(S.days/7));   // 7日ごとに固定値
+  if(p.biweekly_fix) return Math.max(1,(p.fix||1)*Math.ceil(S.days/14));  // 14日ごとに固定値
+  if(p.clothing)    return Math.max(1,totM()*3*Math.ceil(S.days/7)); // 7日ごとに1人3着加算
+  if(p.pp)         return Math.max(1,Math.ceil(totM()*(p.pp||1)*mult));
+  if(p.pp_adult)   return Math.max(1,(S.members[0].count+S.members[1].count+S.members[2].count)*(p.fix||1)); // 乳幼児除外
+  if(p.perPerson)  return Math.max(1,Math.ceil(p.ppd*totM()*S.days*mult)); // 1個×実人数×日数
+  if(p.ppd)        return Math.max(1,Math.ceil(p.ppd*eqv()*S.days*mult));  // 換算人数で計算
+  return Math.max(1,Math.ceil((p.fix||1)*mult));
+}
+function initItems(){
+  const isDetail= S.style === 'rich';
+  const hasBaby   = S.members[3].count > 0;
+  const hasElderly= S.members[2].count > 0;
+  const hasWoman  = S.women > 0;
+  const isPowder  = S.milkType === 'powder';
+  const filtered=P.filter(p=>{
+    if(p.forBaby    && !hasBaby)    return false;
+    if(p.forElderly && !hasElderly) return false;
+    if(p.forWoman   && !hasWoman)   return false;
+    // ミルクタイプ切り替え
+    if(p.milkLiquid && isPowder)    return false; // 粉ミルク時は液体ミルクを除外
+    if(p.milkPowder && !isPowder)   return false; // 液体ミルク時は粉ミルク品を除外
+    if(p.simple) return !isDetail;
+    if(p.detail) return isDetail;
+    return true;
+  });
+  const babyCount = S.members[3].count;
+  const prev=S.items;
+  S.items=filtered.map((p,i)=>{
+    const old=prev.find(o=>o.n===p.n);
+    // 粉ミルク時：飲料水・カセットボンベに調乳分を上乗せ
+    let extraTarget = 0;
+    if(isPowder && hasBaby){
+      if(p.n==='飲料水（2Lボトル）')  extraTarget = Math.ceil(babyCount * S.days * 0.75); // 調乳用1回150ml×5回=750ml/日≒0.75本
+      if(p.n==='カセットボンベ')       extraTarget = Math.ceil(babyCount * S.days * 0.15); // 調乳用
+    }
+    return{
+      id:old?old.id:Date.now()+i,
+      n:p.n, cat:p.cat, u:p.u,
+      stock:old?old.stock:0,
+      target:calcT(p) + extraTarget,
+      expiry:old?old.expiry:'',
+      note:p.note||'',
+      pri:p.pri||2,
+      milkLiquid:p.milkLiquid||false,
+      milkPowderMain:p.milkPowderMain||false,
+      s1:p.s1||1, s2:p.s2||10
+    };
+  });
+  S.screen='main';S.tab='inventory';render();window.scrollTo(0,0);
+}
+function dU(ds){if(!ds)return null;return Math.ceil((new Date(ds)-new Date())/86400000);}
+function oScore(){
+  if(!S.items.length)return 0;
+  return Math.round(S.items.reduce((a,i)=>a+Math.min(i.stock/i.target,1),0)/S.items.length*100);
+}
+function estKcal(){
+  // 実際の在庫数から家族全員の1日合計カロリーを計算
+  const eqvTotal=S.members[0].count+(S.members[1].count+S.members[2].count)*0.8+S.members[3].count*0.5;
+  if(!S.items.length||eqvTotal<=0)return 0;
+  const foodCats=['食料（主食）','食料（主菜・副菜）'];
+  let total=0;
+  S.items.forEach(item=>{
+    if(!foodCats.includes(item.cat))return;
+    const preset=P.find(p=>p.n===item.n);
+    if(!preset||!preset.kcal)return;
+    // 在庫数÷日数 = 家族全員の1日分の量 × kcal/単位
+    const dailyFamily=item.stock/S.days;
+    total+=dailyFamily*preset.kcal;
+  });
+  return Math.round(total);
+}
+function cScore(cat){
+  const ci=S.items.filter(i=>i.cat===cat);
+  if(!ci.length)return 0;
+  return Math.round(ci.reduce((a,i)=>a+Math.min(i.stock/i.target,1),0)/ci.length*100);
+}
+function shortage(){return S.items.filter(i=>i.stock<i.target);}
+function expAlerts(){return S.items.filter(i=>{const d=dU(i.expiry);return d!==null&&d<=30;});}
+
+// ━━ UI ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+function openModal(item){
+  S.modal=item?'edit':'add';
+  S.form=item?{...item}:{n:'',cat:CATS[0],u:'個',stock:0,target:1,expiry:'',note:'',s1:1,s2:10};
+  render();
+}
+function closeModal(){S.modal=null;render();}
+function saveForm(){
+  const f=S.form;if(!f.n.trim())return;
+  const wasEdit=S.modal==='edit';
+  if(wasEdit)S.items=S.items.map(i=>i.id===f.id?{...f}:i);
+  else S.items=[...S.items,{...f,id:Date.now()}];
+  S.modal=null;render();toast(wasEdit?'更新しました':'追加しました');
+}
+function delItem(id){S.items=S.items.filter(i=>i.id!==id);S.modal=null;render();toast('削除しました');}
+function adj(id,delta){
+  S.items=S.items.map(i=>{
+    if(i.id!==id)return i;
+    return{...i,stock:Math.max(0,parseFloat((i.stock+delta).toFixed(3)))};
+  });
+  render();
+}
+
+// ━━ レンダー ━━━━━━━━━━━━━━━━━━━━━━━━
+function render(pushHistory=true){
+  save();
+  if(pushHistory){
+    try{
+      const cur=history.state?.screen;
+      if(cur!==S.screen){
+        window.history.pushState({screen:S.screen},'',window.location.href);
+      }
+    }catch(e){}
+  }
+  document.getElementById('app').innerHTML=buildHTML();
+  bind();
+}
+function buildHTML(){
+  const sc=oScore();
+  const cls=sc>=80?'bdg':sc>=50?'bdg w':'bdg d';
+  const si=shortage();
+  const header=S.screen==='main'
+    ?`<header class="hd"><div class="hd-in">
+        <div class="logo">備蓄管理</div>
+        <div class="${cls}">備蓄度 ${sc}%</div>
+       </div></header>
+       <nav class="tnav"><div class="tnav-in">${buildTabs()}</div></nav>
+       ${S.tab==='shortage'&&si.length>0
+         ?`<div class="set-bar" style="top:108px;">
+             <div style="display:flex;gap:8px;max-width:680px;margin:0 auto;">
+               <button class="cpbtn" id="cpbtn" style="margin:0;flex:1;">画像保存</button>
+               <button class="cpbtn" id="txtbtn" style="margin:0;flex:1;background:#555;">テキストコピー</button>
+             </div>
+           </div>`
+         :S.tab!=='shortage'
+           ?`<div class="set-bar" style="top:108px;"><button class="set-bar-btn" id="rbtn">家族構成・目標日数を変更する</button></div>`
+           :''}`:''  ;
+  const fab=S.screen==='main'&&S.tab==='inventory'?`<button class="fab" id="fab">＋</button>`:'';
+  // set-barの有無でmainのpadding-topを変える
+  const hasSetBar=S.screen==='main'&&(S.tab!=='shortage'||(S.tab==='shortage'&&shortage().length>0));
+  const mainPad=S.screen==='main'?(hasSetBar?'210px':'116px'):'0px';
+  return header+`<main style="padding-top:${mainPad}">${S.screen==='setup'?buildSetup():buildMain()}</main>`+fab+(S.modal?buildModal():'');
+}
+function buildTabs(){
+  return[['dashboard','ダッシュボード'],['inventory','在庫を入力'],['shortage','買い物リスト']]
+    .map(([k,l])=>`<button class="tb${S.tab===k?' on':''}" data-tab="${k}">${l}</button>`).join('');
+}
+
+// ── セットアップ ──────────────────────────
+function buildSetup(){
+  const tot=totM();
+  const st=STYLES.find(s=>s.id===S.style)||STYLES[1];
+  return`
+  <div class="card">
+    <div class="sup-ttl">家族構成を入力</div>
+    <div class="sup-sub">人数・構成をもとに政府公式基準で必要量を自動計算します</div>
+    <div class="mgrid">
+      ${S.members.map((m,i)=>`
+        <div class="mitem">
+          <span class="mlbl">${m.label}</span>
+          <div class="mctr">
+            <button class="mcbtn" data-mi="${i}" data-md="-1">−</button>
+            <span class="mcval">${m.count}</span>
+            <button class="mcbtn p" data-mi="${i}" data-md="1">＋</button>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="trow">
+      <span style="font-weight:700;font-size:15px">合計人数</span>
+      <span style="font-weight:900;font-size:24px">${tot}人</span>
+    </div>
+    <div class="trow">
+      <span style="font-weight:700;font-size:15px">うち女性（生理用品）</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="mcbtn" id="wm">−</button>
+        <span style="font-weight:900;font-size:26px;min-width:30px;text-align:center;">${S.women}</span>
+        <button class="mcbtn p" id="wp">＋</button>
+      </div>
+    </div>
+    <p class="note" style="margin-top:8px">※子ども・高齢者は必要量0.8倍、乳幼児は0.5倍で計算</p>
+    <p class="snote">（岩泉町「家庭内備蓄食料目安量算出根拠」に準拠）</p>
+    <p class="snote" style="margin-top:4px;color:#C2410C;">※乳幼児がいる場合：液体ミルク・離乳食・おむつが自動追加されます</p>
+    <p class="snote" style="color:#C2410C;">※高齢者がいる場合：介護食・介護用おむつが自動追加されます</p>
+    <p class="snote" style="color:#C2410C;">※女性がいる場合：生理用品が人数×日数分で自動追加されます</p>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:700;font-size:16px;margin-bottom:12px">備蓄目標日数</div>
+    <div class="dgrid">
+      ${[3,7,14,30].map(d=>`<button class="dbtn${S.days===d?' on':''}" data-day="${d}">${d}日</button>`).join('')}
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+      <span style="font-size:14px;color:#555;white-space:nowrap;">任意の日数：</span>
+      <input id="custom-days" type="number" min="1" max="365" value="${![3,7,14,30].includes(S.days)?S.days:''}" placeholder="例：20"
+        style="flex:1;padding:12px;border:2px solid #888;border-radius:10px;font-size:16px;font-family:inherit;outline:none;color:#111;">
+      <span style="font-size:14px;color:#555;">日</span>
+    </div>
+    <p class="note">「最低3日分、大規模災害なら1週間分が望ましい」</p>
+    <p class="snote">出典：首相官邸・農林水産省「災害時に備えた食品ストックガイド」</p>
+    <div style="margin-top:10px;padding:10px 12px;background:#FFF7ED;border-left:4px solid #C2410C;border-radius:0 8px 8px 0;">
+      <div style="font-weight:700;font-size:14px;color:#C2410C;margin-bottom:4px">🏢 高層マンションにお住まいの方へ</div>
+      <p class="snote" style="color:#7C2D12;">エレベーター停止・ライフライン復旧の遅れを考慮し、<strong>7日分以上を推奨</strong>（内閣府・港区防災ガイド）</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:700;font-size:16px;margin-bottom:12px">品目の管理方法</div>
+    <div class="dgrid">
+      ${STYLES.map(s=>`
+        <button class="dbtn${S.style===s.id?' on':''}" data-style="${s.id}">${s.name}</button>`).join('')}
+    </div>
+    <p class="snote" style="margin-top:4px;">
+      ${S.style==='std'?'缶詰類はまとめて管理。シンプルに備蓄したい方向け。':'食の多様性を重視する方向け。'}
+    </p>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:700;font-size:16px;margin-bottom:12px">備蓄量の目安</div>
+    <div class="dgrid">
+      ${AMOUNTS.map(a=>`
+        <button class="dbtn${S.amount===a.id?' on':''}" data-amount="${a.id}">${a.name}</button>`).join('')}
+    </div>
+    <p class="snote" style="margin-top:4px;">
+      少なめ×0.8 ／ 標準×1.0（政府推奨量）／ 多め×1.3
+    </p>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:700;font-size:16px;margin-bottom:12px">利用規約への同意</div>
+    <div id="terms-scroll" style="height:200px;overflow-y:auto;border:2px solid #DDD;border-radius:10px;padding:14px;font-size:13px;color:#333;line-height:1.8;margin-bottom:12px;background:#F9F9F9;">
+      <div style="font-weight:700;margin-bottom:6px;">利用規約</div>
+      <p>本アプリ「備蓄管理アプリ」は、個人および家庭の防災備蓄管理を支援することを目的としています。</p>
+      <p style="margin-top:8px;">・本アプリは個人・家庭での利用を目的としています。商用利用はご遠慮ください。</p>
+      <p>・備蓄量の目安は政府公式資料に基づいていますが、地域・状況に応じてご自身でご判断ください。</p>
+      <p>・アプリの内容は予告なく変更・終了する場合があります。</p>
+      <div style="font-weight:700;margin-top:14px;margin-bottom:6px;">免責事項</div>
+      <p>・本アプリが提示する備蓄量はあくまで目安であり、実際の災害時における安全・生存を保証するものではありません。</p>
+      <p style="margin-top:8px;">・クラウド保存（JSONBin.io）の障害やサービス終了によるデータ消失について、責任を負いかねます。</p>
+      <p style="margin-top:8px;">・本アプリの利用によって生じた損害について、開発者は一切の責任を負いません。</p>
+      <div style="font-weight:700;margin-top:14px;margin-bottom:6px;">プライバシーポリシー</div>
+      <p>本アプリが収集・保存するデータは以下の通りです。</p>
+      <p style="margin-top:8px;">【収集するデータ】家族構成（年齢区分ごとの人数）、備蓄品の在庫数・目標数・期限、設定情報</p>
+      <p style="margin-top:8px;">【保存先】ブラウザのlocalStorage（端末内）およびJSONBin.io（クラウド）</p>
+      <p style="margin-top:8px;">【第三者提供】収集したデータを第三者に販売・提供することはありません。</p>
+      <p style="margin-top:14px;color:#888;">※ 最後までスクロールすると同意できます</p>
+    </div>
+    <label id="terms-label" style="display:flex;align-items:center;gap:10px;cursor:${S.agreed?'pointer':'not-allowed'};opacity:${S.agreed?'1':'0.4'};">
+      <input type="checkbox" id="terms-check" ${S.agreed?'checked':'disabled'} style="width:20px;height:20px;cursor:${S.agreed?'pointer':'not-allowed'};">
+      <span style="font-size:14px;font-weight:700;">利用規約・免責事項・プライバシーポリシーに同意する</span>
+    </label>
+  </div>
+
+  <button class="stbtn" id="stbtn" ${tot===0||!S.agreed?'disabled':''}>
+    備蓄管理を始める →
+  </button>`;
+}
+
+// ── ダッシュボード ────────────────────────
+function buildDash(){
+  const sc=oScore();
+  const bc=sc>=80?'#16A34A':sc>=50?'#D97706':'#DC2626';
+  const st=sc>=80?'✅ 十分な備蓄があります':sc>=50?'⚠️ もう少し増やしましょう':'！ 備蓄が不足しています';
+  const alerts=expAlerts();
+  const r=34,ci=2*Math.PI*r;
+  const dash=((sc/100)*ci).toFixed(1);
+  const styleName=STYLES.find(s=>s.id===S.style)?.name||'標準';
+  const amountName=AMOUNTS.find(a=>a.id===S.amount)?.name||'標準';
+  return`
+  <button id="bookmark-btn" style="display:block;width:100%;padding:14px;background:#15803D;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:6px;">家族にURLをシェアする</button>
+  <p style="font-size:12px;color:#166534;margin-bottom:12px;">※ このURLを家族にシェアすると、同じデータをどのデバイスからでも確認・編集できます</p>
+  <div class="scrd">
+    <div class="srow">
+      <div>
+        <div class="smeta">${totM()}人・${S.days}日分・${styleName}・${amountName} / ${S.items.length}品目</div>
+        <div class="snum" style="color:${bc}">${sc}<span style="color:${bc}">%</span></div>
+        <div class="sst" style="color:${bc}">${st}</div>
+      </div>
+      <div class="scirc">
+        <svg width="78" height="78" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="${r}" fill="none" stroke="#E5E5E5" stroke-width="8"/>
+          <circle cx="40" cy="40" r="${r}" fill="none" stroke="${bc}" stroke-width="8"
+            stroke-dasharray="${dash} ${ci.toFixed(1)}" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+    <div class="sbw"><div class="sb" style="width:${sc}%;background:${bc}"></div></div>
+  </div>
+  ${(()=>{
+    const kcal=estKcal();
+    const amMult=(AMOUNTS.find(a=>a.id===S.amount)||AMOUNTS[1]).mult;
+    // 家族合計の目標カロリー
+    const targetBase=Math.round(
+      (S.members[0].count*2000+
+      (S.members[1].count+S.members[2].count)*1600+
+      S.members[3].count*1000)*amMult
+    );
+    const target=targetBase||Math.round(2000*amMult);
+    const pct=Math.min(Math.round(kcal/target*100),100);
+    const kc=kcal>=target?'#16A34A':kcal>=target*0.75?'#D97706':'#DC2626';
+    const km=kcal>=target?`✅ 家族の1日分 ${target.toLocaleString()}kcal達成`:kcal>=target*0.75?`⚠️ やや不足（目標${target.toLocaleString()}kcal）`:`！ 不足（目標${target.toLocaleString()}kcal）`;
+    return`<div class="card" style="margin-bottom:12px;border:2px solid ${kc};">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:13px;color:#666;margin-bottom:2px;">家族全員の1日の推定カロリー</div>
+          <div style="font-weight:900;font-size:32px;color:${kc};line-height:1;">${kcal.toLocaleString()}<span style="font-size:16px;font-weight:400;">kcal</span></div>
+          <div style="font-size:13px;font-weight:700;color:${kc};margin-top:4px;">${km}</div>
+        </div>
+        <div style="font-size:13px;color:#888;text-align:right;">目標<br><span style="font-size:20px;font-weight:900;color:#333;">${target.toLocaleString()}</span><br>kcal</div>
+      </div>
+      <div style="margin-top:10px;height:8px;background:#E5E5E5;border-radius:4px;">
+        <div style="width:${pct}%;height:100%;background:${kc};border-radius:4px;transition:width .5s;"></div>
+      </div>
+    </div>`;
+  })()}
+  <div class="card" style="font-size:13px;color:#444;line-height:2;margin-bottom:12px;">
+    <div style="font-weight:700;font-size:14px;color:#222;margin-bottom:6px">参照している政府公式資料</div>
+    <a href="https://www.kantei.go.jp/jp/headline/bousai/sonae.html" target="_blank" style="color:#1D4ED8;text-decoration:none;display:block">首相官邸「災害の備えチェックリスト」</a>
+    <a href="https://www.maff.go.jp/j/zyukyu/foodstock/guidebook.html" target="_blank" style="color:#1D4ED8;text-decoration:none;display:block">農林水産省「食品ストックガイド」</a>
+    <a href="https://www.bousai.go.jp/kohou/kouhoubousai/h22/09/special_01.html" target="_blank" style="color:#1D4ED8;text-decoration:none;display:block">内閣府「水1人1日3L・トイレ1日5回」基準</a>
+    <a href="https://www.town.iwaizumi.lg.jp/docs/2022082300036/" target="_blank" style="color:#1D4ED8;text-decoration:none;display:block">岩泉町「家庭内備蓄食料目安量計算表」</a>
+    <div style="font-weight:700;font-size:14px;color:#222;margin-top:10px;margin-bottom:6px">参照している民間資料</div>
+    <a href="https://panasonic.jp/battery/contents/safety/drycell.html" target="_blank" style="color:#1D4ED8;text-decoration:none;display:block">パナソニック「備えの基本 乾電池」</a>
+    <a href="https://www.alsok.co.jp/person/recommend/category_003/cat_detail/014/" target="_blank" style="color:#1D4ED8;text-decoration:none;display:block">ALSOK「災害時の備蓄品リスト」</a>
+    ${S.savedAt?`<div style="color:#777;font-size:13px;margin-top:4px">最終保存: ${new Date(S.savedAt).toLocaleString('ja-JP')}</div>`:''}
+    <div style="margin-top:12px;display:flex;gap:16px;font-size:12px;">
+      <button onclick="document.getElementById('legal-modal').style.display='flex'" style="background:none;border:none;color:#888;cursor:pointer;font-size:12px;padding:0;font-family:inherit;text-decoration:underline;">利用規約・免責事項・プライバシーポリシー</button>
+    </div>
+  </div>
+  ${alerts.length?`<div class="abox">
+    <div class="atit">⏰ 期限アラート（30日以内）</div>
+    ${alerts.map(item=>{
+      const d=dU(item.expiry);
+      return`<div class="arow"><span>${item.n}</span>
+        <span style="font-weight:700;color:#111">${d<=0?'期限切れ！':'あと'+d+'日'}</span></div>`;
+    }).join('')}
+  </div>`:''}
+  <div class="cgrid">
+    ${CATS.map(cat=>{
+      const s=cScore(cat);const cnt=S.items.filter(i=>i.cat===cat).length;
+      return`<div class="ccard">
+        <div class="cico">${CICO[cat]}</div>
+        <div class="cnm">${cat}</div>
+        <div style="font-size:13px;color:#666;margin-bottom:8px">${cnt}品目</div>
+        <div class="cbw"><div class="cbr" style="width:${s}%"></div></div>
+        <div class="csc">${s}%</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ── 在庫を入力 ────────────────────────────
+function buildInv(){
+  const PRI_LABEL={1:'優先度 高',2:'優先度 中',3:'優先度 低'};
+  const PRI_BG   ={1:'#FEE2E2',  2:'#FEF9C3',  3:'#DBEAFE'};
+  const PRI_COLOR={1:'#B91C1C',  2:'#92400E',  3:'#1E40AF'};
+  let list=S.filterCat==='すべて'
+    ? [...S.items]
+    : S.items.filter(i=>i.cat===S.filterCat);
+  // 優先度高から順に並べる（同優先度内は元の順番を維持）
+  list.sort((a,b)=>(a.pri||2)-(b.pri||2));
+  const total=S.items.length;
+  const done=S.items.filter(i=>i.stock>=i.target).length;
+  return`
+  <div style="margin-bottom:10px;font-size:14px;color:#555;">${total}品目中 ${done}品目達成</div>
+  <div class="fw">
+    ${['すべて',...CATS].map(c=>`
+      <button class="fb${S.filterCat===c?' on':''}" data-fil="${c}">${c}</button>`).join('')}
+  </div>
+  <div class="ilist-wrap">
+  <div class="ilist">
+    ${list.map(item=>{
+      const pct=Math.min(Math.round(item.stock/item.target*100),100);
+      const d=dU(item.expiry);
+      const isExp=d!==null&&d<=0,isSoon=d!==null&&d>0&&d<=30;
+      const bc=pct>=100?'#16A34A':pct>=50?'#D97706':'#DC2626';
+      const lack=Math.max(0,parseFloat((item.target-item.stock).toFixed(2)));
+      const isDone=lack===0;
+      const stockDisp=Number.isInteger(item.stock)?item.stock:parseFloat(item.stock.toFixed(2));
+      const pri=item.pri||2;
+      const priLabel=PRI_LABEL[pri];
+      const priBg=PRI_BG[pri];
+      const priColor=PRI_COLOR[pri];
+      return`<div class="ic">
+        <div class="ic-top">
+          <div class="ic-info">
+            ${isExp||isSoon?`<div class="ic-tags">
+              ${isExp?`<span class="tag" style="background:#FEE2E2;color:#B91C1C">期限切れ</span>`:''}
+              ${isSoon?`<span class="tag" style="background:#FEF3C7;color:#92400E">あと${d}日</span>`:''}
+            </div>`:''}
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+              <div>
+                <div class="ic-name">${item.n} <button class="ic-edit" data-edit="${item.id}">編集</button>${item.milkLiquid?`<button id="milk-toggle" style="background:none;border:1px solid #C2410C;border-radius:6px;color:#C2410C;font-size:12px;font-weight:700;padding:2px 8px;cursor:pointer;margin-left:4px;font-family:inherit;">粉ミルクに切替</button>`:item.milkPowderMain?`<button id="milk-toggle" style="background:none;border:1px solid #1D4ED8;border-radius:6px;color:#1D4ED8;font-size:12px;font-weight:700;padding:2px 8px;cursor:pointer;margin-left:4px;font-family:inherit;">液体ミルクに戻す</button>`:''}</div>
+                <div style="display:inline-block;margin-top:4px;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:700;background:${priBg};color:${priColor};">${priLabel}</div>
+                ${item.expiry?`<div class="ic-target">期限: ${item.expiry}</div>`:''}
+              </div>
+              <div style="text-align:right;flex-shrink:0;">
+                ${isDone
+                  ?`<div style="color:#16A34A;font-weight:900;font-size:28px;line-height:1.2;">✓ 達成</div>
+                    <div style="font-size:13px;color:#666;">${stockDisp} / ${item.target}${item.u}</div>`
+                  :`<div style="color:#DC2626;font-weight:900;font-size:28px;line-height:1.2;"><span style="font-size:16px;font-weight:500;color:#555;">あと </span>${lack}<span style="font-size:18px;font-weight:700;">${item.u}</span></div>
+                    <div style="font-size:13px;color:#666;">${stockDisp} / ${item.target}${item.u}</div>`
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+        ${(()=>{const preset=P.find(p=>p.n===item.n);const note=preset?.note||item.note;return note?`<div class="ic-note">${note}</div>`:'';})()} 
+        ${isSoon&&!isExp?`<div style="margin-top:8px;padding:10px 12px;background:#FFF7ED;border-left:4px solid #C2410C;border-radius:0 8px 8px 0;font-size:13px;font-weight:700;color:#C2410C;">そろそろ消費して補充しましょう！</div>`:''}
+        ${isExp?`<div style="margin-top:8px;padding:10px 12px;background:#FEE2E2;border-left:4px solid #DC2626;border-radius:0 8px 8px 0;font-size:13px;font-weight:700;color:#DC2626;">期限切れです。新しいものと交換してください。</div>`:''}
+        <div style="background:var(--bg);border-radius:12px;padding:14px;margin-top:10px;">
+          <div class="stk-zone">
+            <div class="stk-row">
+              <button class="rbtn-sub minus" data-id="${item.id}" data-d="-10">−10</button>
+              <button class="rbtn-main minus" data-id="${item.id}" data-d="-1">−</button>
+              <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:52px;">
+                <span style="font-weight:900;font-size:22px;color:#111;line-height:1.2;">${stockDisp}</span>
+              </div>
+              <button class="rbtn-main plus" data-id="${item.id}" data-d="1">＋</button>
+              <button class="rbtn-sub plus"  data-id="${item.id}" data-d="10">＋10</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>
+  </div>`;
+}
+
+// ── 買い物リスト ──────────────────────────
+function buildShort(){
+  const si=shortage();
+  const total=S.items.length;
+  const ok=total-si.length;
+  return`
+  <div class="sh-hd">
+    <div class="sh-ttl">買い物リスト</div>
+    <div class="sh-sub">${total}品目中 ${ok}品目達成 ／ 不足 ${si.length}品目</div>
+  </div>
+  ${si.length===0
+    ?`<div class="ebox"><div class="eico">✅</div><div class="etxt">すべての品目が目標達成！</div></div>`
+    :`<div id="short-capture" style="background:#fff;padding:16px;width:360px;">
+        <div style="font-weight:900;font-size:18px;margin-bottom:12px;border-bottom:2px solid #1a3a5c;padding-bottom:8px;">🛒 買い物リスト</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+        ${si.map(item=>{
+          const lack=Math.max(0,parseFloat((item.target-item.stock).toFixed(2)));
+          return`<div style="background:#F8F8F8;border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#111;">${item.n}</div>
+              <div style="font-size:11px;color:#888;margin-top:2px;">${item.cat}</div>
+            </div>
+            <div style="font-size:16px;font-weight:900;color:#DC2626;flex-shrink:0;margin-left:8px;">あと ${lack}${item.u}</div>
+          </div>`;
+        }).join('')}
+        </div>
+        <div style="font-size:11px;color:#aaa;text-align:right;margin-top:10px;">備蓄管理アプリ</div>
+      </div>
+      <p style="font-size:13px;color:#666;text-align:center;margin-top:10px">
+        画像をカメラロールに保存してメモアプリやLINEで共有できます
+      </p>`
+  }`;
+}
+
+// ── モーダル ──────────────────────────────
+function buildModal(){
+  const f=S.form;const isEdit=S.modal==='edit';
+  return`
+  <div class="mo" id="mo">
+    <div class="mb" id="mb">
+      <div class="mttl">${isEdit?'品目を編集':'品目を追加'}</div>
+      <div>
+        <div class="fg"><label class="fl">品名</label>
+          <input class="fi" id="fn" type="text" value="${escH(f.n||'')}"></div>
+        <div class="fg"><label class="fl">カテゴリ</label>
+          <select class="fi" id="fc">${CATS.map(c=>`<option value="${c}"${f.cat===c?' selected':''}>${c}</option>`).join('')}</select></div>
+        <div class="fg"><label class="fl">単位（個・本・kg・枚など）</label>
+          <input class="fi" id="fu" type="text" value="${escH(f.u||'')}"></div>
+        <div class="fg"><label class="fl">在庫数</label>
+          <input class="fi" id="fs" type="number" min="0" step="any" value="${f.stock||0}"></div>
+        <div class="fg"><label class="fl">目標数</label>
+          <input class="fi" id="ft" type="number" min="1" step="any" value="${f.target||1}"></div>
+        <div class="fg"><label class="fl">賞味期限 / 使用期限</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input class="fi" id="fe" type="date" value="${f.expiry||''}" placeholder="例：2026-12-31" style="flex:1;min-height:52px;">
+            <button type="button" id="fe-clear" style="padding:13px 14px;border:2px solid #999;border-radius:10px;background:#F5F5F5;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;color:#555;">クリア</button>
+          </div>
+        </div>
+        <div class="fg"><label class="fl">メモ（任意）</label>
+          <input class="fi" id="fm" type="text" value="${escH(f.note||'')}"></div>
+      </div>
+      <div class="mbtns">
+        ${isEdit?`<button class="delbtn" id="delbtn">削除</button>`:''}
+        <button class="savbtn" id="savbtn">${isEdit?'更新':'追加'}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+
+function buildMain(){
+  if(S.tab==='dashboard')return buildDash();
+  if(S.tab==='inventory')return buildInv();
+  if(S.tab==='shortage') return buildShort();
+  return'';
+}
+
+// ━━ イベント ━━━━━━━━━━━━━━━━━━━━━━━━━━
+function bind(){
+  document.querySelectorAll('[data-mi]').forEach(b=>b.addEventListener('click',()=>{
+    const i=+b.dataset.mi,d=+b.dataset.md;
+    S.members[i].count=Math.max(0,S.members[i].count+d);render();
+  }));
+  document.querySelectorAll('[data-day]').forEach(b=>b.addEventListener('click',()=>{
+    S.days=+b.dataset.day;
+    const cd=document.getElementById('custom-days');
+    if(cd)cd.value='';
+    render();
+  }));
+  const customDays=document.getElementById('custom-days');
+  if(customDays)customDays.addEventListener('change',()=>{
+    const v=parseInt(customDays.value);
+    if(v&&v>=1&&v<=365){S.days=v;render();}
+  });
+  const wm=document.getElementById('wm'),wp=document.getElementById('wp');
+  if(wm)wm.addEventListener('click',()=>{S.women=Math.max(0,S.women-1);render();});
+  if(wp)wp.addEventListener('click',()=>{S.women++;render();});
+  document.querySelectorAll('[data-style]').forEach(b=>b.addEventListener('click',()=>{S.style=b.dataset.style;render();}));
+  document.querySelectorAll('[data-amount]').forEach(b=>b.addEventListener('click',()=>{S.amount=b.dataset.amount;render();}));
+  const stbtn=document.getElementById('stbtn');
+  if(stbtn)stbtn.addEventListener('click',initItems);
+  // 利用規約スクロール検知
+  const termsScroll=document.getElementById('terms-scroll');
+  const termsCheck=document.getElementById('terms-check');
+  const termsLabel=document.getElementById('terms-label');
+  if(termsScroll){
+    termsScroll.addEventListener('scroll',()=>{
+      const el=termsScroll;
+      const atBottom=el.scrollHeight-el.scrollTop<=el.clientHeight+10;
+      if(atBottom&&termsCheck){
+        termsCheck.disabled=false;
+        termsCheck.style.cursor='pointer';
+        termsLabel.style.cursor='pointer';
+        termsLabel.style.opacity='1';
+      }
+    });
+  }
+  if(termsCheck){
+    termsCheck.checked=S.agreed;
+    termsCheck.addEventListener('change',()=>{
+      S.agreed=termsCheck.checked;
+      if(stbtn)stbtn.disabled=(!S.agreed||totM()===0);
+    });
+  }
+  document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{S.tab=b.dataset.tab;render();window.scrollTo(0,0);}));
+  const rbtn=document.getElementById('rbtn');
+  if(rbtn)rbtn.addEventListener('click',()=>{S.screen='setup';render();window.scrollTo(0,0);});
+  document.querySelectorAll('[data-fil]').forEach(b=>b.addEventListener('click',()=>{
+    const scrollY=window.scrollY;
+    const fw=document.querySelector('.fw');
+    const fwScrollLeft=fw?fw.scrollLeft:0;
+    S.filterCat=b.dataset.fil;
+    render(false);
+    window.scrollTo(0,scrollY);
+    const fwNew=document.querySelector('.fw');
+    if(fwNew)fwNew.scrollLeft=fwScrollLeft;
+  }));
+  document.querySelectorAll('[data-id]').forEach(b=>b.addEventListener('click',()=>adj(+b.dataset.id,+b.dataset.d)));
+  document.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>{
+    const item=S.items.find(i=>i.id===+b.dataset.edit);if(item)openModal(item);
+  }));
+  const fab=document.getElementById('fab');
+  if(fab)fab.addEventListener('click',()=>openModal(null));
+  const milkToggle=document.getElementById('milk-toggle');
+  if(milkToggle)milkToggle.addEventListener('click',()=>{
+    S.milkType=S.milkType==='liquid'?'powder':'liquid';
+    initItems();
+    toast(S.milkType==='powder'?'粉ミルクに切り替えました':'液体ミルクに切り替えました');
+  });
+  const mo=document.getElementById('mo'),mb=document.getElementById('mb');
+  if(mo)mo.addEventListener('click',closeModal);
+  if(mb)mb.addEventListener('click',e=>e.stopPropagation());
+  const savbtn=document.getElementById('savbtn');
+  if(savbtn)savbtn.addEventListener('click',()=>{
+    S.form.n=document.getElementById('fn').value.trim();
+    S.form.cat=document.getElementById('fc').value;
+    S.form.u=document.getElementById('fu').value.trim();
+    S.form.stock=parseFloat(document.getElementById('fs').value)||0;
+    S.form.target=parseFloat(document.getElementById('ft').value)||1;
+    S.form.expiry=document.getElementById('fe').value;
+    S.form.note=document.getElementById('fm').value.trim();
+    saveForm();
+  });
+  const delbtn=document.getElementById('delbtn');
+  const feClear=document.getElementById('fe-clear');
+  if(feClear)feClear.addEventListener('click',()=>{
+    document.getElementById('fe').value='';
+  });
+  const bookmarkBtn=document.getElementById('bookmark-btn');
+  if(bookmarkBtn)bookmarkBtn.addEventListener('click',async()=>{
+    const url=window.location.href;
+    // navigator.shareを試みる（Vercel本番環境向け）
+    if(navigator.share&&navigator.canShare&&navigator.canShare({url})){
+      try{
+        await navigator.share({title:'備蓄管理アプリ',url});
+        return;
+      }catch(e){}
+    }
+    // フォールバック：URLをクリップボードにコピー
+    try{
+      await navigator.clipboard.writeText(url);
+      toast('URLをコピーしました！LINEなどで家族に送ってください');
+    }catch(e){
+      const ta=document.createElement('textarea');
+      ta.value=url;
+      document.body.appendChild(ta);ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      toast('URLをコピーしました！LINEなどで家族に送ってください');
+    }
+  });
+  if(delbtn)delbtn.addEventListener('click',()=>{if(confirm('この品目を削除しますか？'))delItem(S.form.id);});
+  const cpbtn=document.getElementById('cpbtn');
+  if(cpbtn)cpbtn.addEventListener('click',()=>{
+    const si=shortage();
+    if(!si.length)return;
+
+    // Canvasで直接テキストリストを描画
+    const lineH=36, padding=24, titleH=52, footerH=32;
+    const w=640;
+    const h=titleH+lineH*si.length+padding*2+footerH;
+    const canvas=document.createElement('canvas');
+    canvas.width=w; canvas.height=h;
+    const ctx=canvas.getContext('2d');
+
+    // 背景
+    ctx.fillStyle='#ffffff';
+    ctx.fillRect(0,0,w,h);
+
+    // ヘッダー帯
+    ctx.fillStyle='#1a3a5c';
+    ctx.fillRect(0,0,w,titleH);
+    ctx.fillStyle='#ffffff';
+    ctx.font='bold 22px sans-serif';
+    ctx.fillText('🛒 買い物リスト',padding,34);
+
+    // 日付
+    const now=new Date();
+    const dateStr=`${now.getMonth()+1}/${now.getDate()}`;
+    ctx.font='14px sans-serif';
+    ctx.fillStyle='rgba(255,255,255,0.8)';
+    ctx.textAlign='right';
+    ctx.fillText(dateStr,w-padding,34);
+    ctx.textAlign='left';
+
+    // 品目リスト
+    si.forEach((item,i)=>{
+      const y=titleH+padding+i*lineH;
+      // 交互背景
+      if(i%2===0){ctx.fillStyle='#F8F9FA';ctx.fillRect(0,y-20,w,lineH);}
+      // 品目名
+      ctx.font='bold 18px sans-serif';
+      ctx.fillStyle='#111111';
+      ctx.fillText(`・${item.n}`,padding,y);
+      // 不足量
+      const lack=Math.max(0,parseFloat((item.target-item.stock).toFixed(2)));
+      const lackTxt=`あと ${lack}${item.u}`;
+      ctx.font='bold 18px sans-serif';
+      ctx.fillStyle='#DC2626';
+      ctx.textAlign='right';
+      ctx.fillText(lackTxt,w-padding,y);
+      ctx.textAlign='left';
+    });
+
+    // フッター
+    ctx.font='12px sans-serif';
+    ctx.fillStyle='#aaaaaa';
+    ctx.textAlign='right';
+    ctx.fillText('備蓄管理アプリ',w-padding,h-10);
+    ctx.textAlign='left';
+
+    const dataUrl=canvas.toDataURL('image/png');
+    const overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;background:#fff;z-index:9999;display:flex;flex-direction:column;overflow-y:auto;';
+    overlay.innerHTML=`
+      <div style="position:sticky;top:0;background:#1a3a5c;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;z-index:1;">
+        <p style="color:#fff;font-size:14px;margin:0;font-weight:700;">📥 長押し →「写真に追加」</p>
+        <button id="img-close" style="padding:8px 16px;background:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;color:#1a3a5c;">閉じる</button>
+      </div>
+      <div style="padding:12px;">
+        <img src="${dataUrl}" style="width:100%;display:block;border-radius:8px;">
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    document.getElementById('img-close').addEventListener('click',()=>overlay.remove());
+  });
+  const txtbtn=document.getElementById('txtbtn');
+  if(txtbtn)txtbtn.addEventListener('click',()=>{
+    const txt=shortage().map(i=>`・${i.n}（あと${parseFloat((i.target-i.stock).toFixed(2))}${i.u}）`).join('\n');
+    if(navigator.clipboard)navigator.clipboard.writeText(txt).then(()=>toast('コピーしました！'));
+    else{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('コピーしました！');}
+  });
+}
+</script>
+</body>
+</html>
