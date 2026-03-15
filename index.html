@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>備蓄管理アプリ</title>
+<meta name="description" content="政府公式資料にもとづく備蓄量の自動計算。家族でリアルタイム共有できる無料の防災備蓄管理アプリ。">
+<meta property="og:title" content="備蓄管理アプリ">
+<meta property="og:description" content="政府公式資料にもとづく備蓄量の自動計算。家族でリアルタイム共有できる無料の防災備蓄管理アプリ。">
+<meta property="og:image" content="https://stock-manager.kosodante.com/ogp.php">
+<meta property="og:url" content="https://stock-manager.kosodante.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="備蓄管理アプリ">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="備蓄管理アプリ">
+<meta name="twitter:description" content="政府公式資料にもとづく備蓄量の自動計算。家族でリアルタイム共有できる無料の防災備蓄管理アプリ。">
+<meta name="twitter:image" content="https://stock-manager.kosodante.com/ogp.php">
 <link rel="icon" type="image/svg+xml" href="./favicon.svg">
 <link rel="apple-touch-icon" href="./favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -609,9 +620,75 @@ window.addEventListener('popstate',(e)=>{
     render(false);
   }
 });
+load();
+// URLにIDがなければ付与
+try{
+  const params=new URLSearchParams(window.location.search);
+  if(!params.get('id')){
+    const url=new URL(window.location.href);
+    url.searchParams.set('id',USER_ID);
+    window.history.replaceState({screen:S.screen},'',url.toString());
+  } else {
+    window.history.replaceState({screen:S.screen},'',window.location.href);
+  }
+}catch(e){}
+// ブラウザの戻るボタン対応
+window.addEventListener('popstate',(e)=>{
+  if(e.state&&e.state.screen){
+    S.screen=e.state.screen;
+    render(false);
+  }
+});
+
+// URLのIDと自分のIDが異なる場合（他人のURLを開いた）→ ダイアログ表示
+function showNewUserDialog(){
+  const dialog=document.createElement('div');
+  dialog.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-end;';
+  dialog.innerHTML=`
+    <div style="background:#fff;width:100%;max-width:680px;margin:0 auto;border-radius:22px 22px 0 0;padding:24px 16px 40px;">
+      <div style="font-weight:900;font-size:18px;margin-bottom:8px;">備蓄管理アプリへようこそ</div>
+      <div style="font-size:14px;color:#555;margin-bottom:20px;line-height:1.7;">シェアされたURLからアクセスしています。どちらで始めますか？</div>
+      <button id="dlg-new" style="display:block;width:100%;padding:16px;background:#1a3a5c;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;">
+        自分用に新規で始める
+        <div style="font-size:12px;font-weight:400;margin-top:4px;opacity:.85;">独自のデータで新しく備蓄管理を開始します</div>
+      </button>
+      <button id="dlg-view" style="display:block;width:100%;padding:16px;background:#fff;color:#1a3a5c;border:2px solid #1a3a5c;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">
+        シェアされたデータを見る
+        <div style="font-size:12px;font-weight:400;margin-top:4px;opacity:.7;">このURLのデータを確認・編集します</div>
+      </button>
+    </div>`;
+  document.body.appendChild(dialog);
+
+  document.getElementById('dlg-new').addEventListener('click',()=>{
+    dialog.remove();
+    // 新しいIDを発行してURLを書き換え
+    const newId=crypto.randomUUID();
+    localStorage.setItem('bichiku_user_id',newId);
+    try{
+      const url=new URL(window.location.href);
+      url.searchParams.set('id',newId);
+      window.location.replace(url.toString());
+    }catch(e){}
+  });
+  document.getElementById('dlg-view').addEventListener('click',()=>{
+    dialog.remove();
+    // このIDを自分のIDとして保存
+    localStorage.setItem('bichiku_user_id',USER_ID);
+  });
+}
+
 render();
 loadFromCloud().then(d=>{
   if(d){applyData(d);render(false);}
+  // URLのIDと自分のIDを照合
+  try{
+    const params=new URLSearchParams(window.location.search);
+    const urlId=params.get('id');
+    const myId=localStorage.getItem('bichiku_user_id');
+    if(urlId && myId && urlId!==myId){
+      showNewUserDialog();
+    }
+  }catch(e){}
 });
 
 // ━━ 計算 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -779,9 +856,16 @@ function buildHTML(){
                <button class="cpbtn" id="txtbtn" style="margin:0;flex:1;background:#555;">テキストコピー</button>
              </div>
            </div>`
-         :S.tab!=='shortage'
-           ?`<div class="set-bar" style="top:108px;"><button class="set-bar-btn" id="rbtn">家族構成・目標日数を変更する</button></div>`
-           :''}`:''  ;
+         :S.tab==='dashboard'
+           ?`<div class="set-bar" style="top:108px;">
+               <div style="display:flex;gap:8px;max-width:680px;margin:0 auto;">
+                 <button class="set-bar-btn" id="rbtn" style="flex:1;">設定を変更する</button>
+                 <button class="cpbtn" id="bookmark-btn" style="margin:0;flex:1;background:#15803D;">家族にシェアする</button>
+               </div>
+             </div>`
+           :S.tab==='inventory'
+             ?`<div class="set-bar" style="top:108px;"><button class="set-bar-btn" id="rbtn">設定を変更する</button></div>`
+             :''}`:''  ;
   const fab=S.screen==='main'&&S.tab==='inventory'?`<button class="fab" id="fab">＋</button>`:'';
   // set-barの有無でmainのpadding-topを変える
   const hasSetBar=S.screen==='main'&&(S.tab!=='shortage'||(S.tab==='shortage'&&shortage().length>0));
@@ -913,7 +997,6 @@ function buildDash(){
   const styleName=STYLES.find(s=>s.id===S.style)?.name||'標準';
   const amountName=AMOUNTS.find(a=>a.id===S.amount)?.name||'標準';
   return`
-  <button id="bookmark-btn" style="display:block;width:100%;padding:14px;background:#15803D;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:6px;">家族にURLをシェアする</button>
   <p style="font-size:12px;color:#166534;margin-bottom:12px;">※ このURLを家族にシェアすると、同じデータをどのデバイスからでも確認・編集できます</p>
   <div class="scrd">
     <div class="srow">
@@ -1244,27 +1327,53 @@ function bind(){
     document.getElementById('fe').value='';
   });
   const bookmarkBtn=document.getElementById('bookmark-btn');
-  if(bookmarkBtn)bookmarkBtn.addEventListener('click',async()=>{
-    const url=window.location.href;
-    // navigator.shareを試みる（Vercel本番環境向け）
-    if(navigator.share&&navigator.canShare&&navigator.canShare({url})){
+  if(bookmarkBtn)bookmarkBtn.addEventListener('click',()=>{
+    // 確認ダイアログ表示
+    const dialog=document.createElement('div');
+    dialog.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-end;';
+    dialog.innerHTML=`
+      <div style="background:#fff;width:100%;max-width:680px;margin:0 auto;border-radius:22px 22px 0 0;padding:24px 16px 40px;">
+        <div style="font-weight:900;font-size:18px;margin-bottom:8px;">シェア方法を選んでください</div>
+        <div style="font-size:14px;color:#555;margin-bottom:20px;line-height:1.7;">用途によって共有するURLが異なります。</div>
+        <button id="share-family" style="display:block;width:100%;padding:16px;background:#15803D;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;">
+          家族と同じデータを共有する
+          <div style="font-size:12px;font-weight:400;margin-top:4px;opacity:.85;">同じ在庫データをリアルタイムで共有・編集できます</div>
+        </button>
+        <button id="share-new" style="display:block;width:100%;padding:16px;background:#1a3a5c;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;">
+          アプリを新規で紹介する
+          <div style="font-size:12px;font-weight:400;margin-top:4px;opacity:.85;">相手が独自のデータで新規スタートできます</div>
+        </button>
+        <button id="share-cancel" style="display:block;width:100%;padding:14px;background:none;border:2px solid #DDD;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;color:#555;">キャンセル</button>
+      </div>`;
+    document.body.appendChild(dialog);
+
+    async function doShare(url){
+      dialog.remove();
+      if(navigator.share&&navigator.canShare&&navigator.canShare({url})){
+        try{await navigator.share({title:'備蓄管理アプリ',url});return;}catch(e){}
+      }
       try{
-        await navigator.share({title:'備蓄管理アプリ',url});
-        return;
-      }catch(e){}
+        await navigator.clipboard.writeText(url);
+        toast(url.includes('?id=')
+          ?'家族共有用URLをコピーしました！'
+          :'アプリ紹介用URLをコピーしました！');
+      }catch(e){
+        const ta=document.createElement('textarea');ta.value=url;
+        document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+        toast(url.includes('?id=')
+          ?'家族共有用URLをコピーしました！'
+          :'アプリ紹介用URLをコピーしました！');
+      }
     }
-    // フォールバック：URLをクリップボードにコピー
-    try{
-      await navigator.clipboard.writeText(url);
-      toast('URLをコピーしました！LINEなどで家族に送ってください');
-    }catch(e){
-      const ta=document.createElement('textarea');
-      ta.value=url;
-      document.body.appendChild(ta);ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      toast('URLをコピーしました！LINEなどで家族に送ってください');
-    }
+
+    document.getElementById('share-family').addEventListener('click',()=>doShare(window.location.href));
+    document.getElementById('share-new').addEventListener('click',()=>{
+      const url=new URL(window.location.href);
+      url.searchParams.delete('id');
+      doShare(url.toString());
+    });
+    document.getElementById('share-cancel').addEventListener('click',()=>dialog.remove());
+    dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.remove();});
   });
   if(delbtn)delbtn.addEventListener('click',()=>{if(confirm('この品目を削除しますか？'))delItem(S.form.id);});
   const cpbtn=document.getElementById('cpbtn');
