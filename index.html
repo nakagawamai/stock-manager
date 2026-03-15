@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>備蓄管理アプリ</title>
+<link rel="icon" type="image/svg+xml" href="./favicon.svg">
+<link rel="apple-touch-icon" href="./favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -188,7 +190,26 @@ select.fi{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns=
 <div id="app"></div>
 <div class="toast" id="toast"></div>
 
-<!-- 法的情報モーダル -->
+<!-- お問い合わせモーダル -->
+<div id="contact-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:flex-end;">
+  <div style="background:#fff;width:100%;max-width:680px;margin:0 auto;border-radius:22px 22px 0 0;padding:24px 16px 40px;max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div style="font-weight:900;font-size:18px;">お問い合わせ</div>
+      <button onclick="document.getElementById('contact-modal').style.display='none'" style="background:none;border:none;font-size:24px;cursor:pointer;color:#555;padding:0;">✕</button>
+    </div>
+    <div style="font-size:14px;color:#333;line-height:1.8;margin-bottom:20px;">
+      <p>本アプリに関するご質問・ご要望・不具合報告は、以下のメールアドレスまでお気軽にお問い合わせください。</p>
+      <div style="margin-top:16px;padding:14px;background:#F0F9FF;border-radius:10px;text-align:center;">
+        <div style="font-size:13px;color:#666;margin-bottom:4px;">開発者</div>
+        <div style="font-weight:700;font-size:16px;color:#1a3a5c;margin-bottom:8px;">仲川 舞</div>
+        <div style="font-size:13px;color:#666;margin-bottom:4px;">メールアドレス</div>
+        <a href="mailto:barairopop0319@gmail.com" style="font-weight:700;font-size:16px;color:#1D4ED8;text-decoration:none;">barairopop0319@gmail.com</a>
+      </div>
+      <p style="margin-top:16px;font-size:13px;color:#666;">※返信までにお時間をいただく場合がございます。あらかじめご了承ください。</p>
+    </div>
+    <button onclick="document.getElementById('contact-modal').style.display='none'" style="width:100%;padding:16px;background:#1a3a5c;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;">閉じる</button>
+  </div>
+</div>
 <div id="legal-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:flex-end;">
   <div style="background:#fff;width:100%;max-width:680px;margin:0 auto;border-radius:22px 22px 0 0;padding:24px 16px 40px;max-height:90vh;overflow-y:auto;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
@@ -207,7 +228,7 @@ select.fi{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns=
     <div style="font-weight:900;font-size:16px;margin-bottom:8px;color:#1a3a5c;">免責事項</div>
     <div style="font-size:14px;color:#333;line-height:1.8;margin-bottom:20px;">
       <p>・本アプリが提示する備蓄量はあくまで目安であり、実際の災害時における安全・生存を保証するものではありません。</p>
-      <p style="margin-top:8px;">・クラウド保存（JSONBin.io）の障害やサービス終了によるデータ消失について、責任を負いかねます。重要なデータは定期的にご自身でメモ等に記録されることをお勧めします。</p>
+      <p style="margin-top:8px;">・サーバー障害やファイル消失によるデータ消失について、責任を負いかねます。重要なデータは定期的にご自身でメモ等に記録されることをお勧めします。</p>
       <p style="margin-top:8px;">・本アプリの利用によって生じた損害について、開発者は一切の責任を負いません。</p>
     </div>
 
@@ -220,12 +241,12 @@ select.fi{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns=
       <p>・設定情報（目標日数・スタイル・備蓄量の目安）</p>
       <p style="margin-top:8px;">【保存先】</p>
       <p>・お使いのブラウザのlocalStorage（端末内）</p>
-      <p>・JSONBin.io（クラウドストレージサービス）※URLに含まれるIDで識別します</p>
+      <p>・本サービスのサーバー（JSONファイル形式）※URLに含まれるIDで識別します</p>
       <p style="margin-top:8px;">【第三者提供】</p>
       <p>・収集したデータを第三者に販売・提供することはありません。</p>
       <p style="margin-top:8px;">【データ削除】</p>
       <p>・ブラウザのlocalStorageを削除することで端末内のデータを消去できます。</p>
-      <p>・クラウドデータはJSONBin.ioのサービス上に保存されます。</p>
+      <p>・サーバー上のデータ削除をご希望の場合は、管理者にお問い合わせください。</p>
     </div>
 
     <button onclick="document.getElementById('legal-modal').style.display='none'" style="width:100%;padding:16px;background:#1a3a5c;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;">閉じる</button>
@@ -475,11 +496,8 @@ const P=[
 
 // ━━ ストレージ ━━━━━━━━━━━━━━━━━━━━━
 const SK='bichiku_v4';
-const JBIN_KEY='$2a$10$wSeduLeytNkyHH8ma4BdwuYcvebSlaLStIu9HuiQD2aGUAajl54qm';
-const JBIN_URL='https://api.jsonbin.io/v3/b';
-
 // URLからIDを取得、なければ生成
-function getOrCreateId(){
+const USER_ID=(()=>{
   const params=new URLSearchParams(window.location.search);
   let id=params.get('id');
   if(!id){
@@ -488,24 +506,13 @@ function getOrCreateId(){
       const url=new URL(window.location.href);
       url.searchParams.set('id',id);
       window.history.replaceState({},'',url.toString());
-    }catch(e){
-      // iframeやプレビュー環境ではlocalStorageにIDを保存
-    }
-    localStorage.setItem('bichiku_user_id', id);
+    }catch(e){}
+    localStorage.setItem('bichiku_user_id',id);
   }
   return id;
-}
-const USER_ID=(()=>{
-  const params=new URLSearchParams(window.location.search);
-  return params.get('id') || localStorage.getItem('bichiku_user_id') || (()=>{
-    const id=crypto.randomUUID();
-    localStorage.setItem('bichiku_user_id', id);
-    return id;
-  })();
 })();
 
-// JSONBin のBin IDをlocalStorageで管理
-function getBinKey(){return `bichiku_bin_${USER_ID}`;}
+const API_BASE='./api';
 
 function getSaveData(){
   return{
@@ -514,29 +521,6 @@ function getSaveData(){
     women:S.women,milkType:S.milkType,agreed:S.agreed,
     savedAt:new Date().toISOString()
   };
-}
-
-// BinIDをURLに反映
-function setBinInUrl(binId){
-  try{
-    const url=new URL(window.location.href);
-    if(url.searchParams.get('bin')!==binId){
-      url.searchParams.set('bin',binId);
-      window.history.replaceState({},'',url.toString());
-    }
-  }catch(e){}
-}
-
-// BinIDを取得（URL優先→localStorage）
-function getBinId(){
-  const params=new URLSearchParams(window.location.search);
-  return params.get('bin')||localStorage.getItem(getBinKey())||null;
-}
-
-// BinIDを保存
-function storeBinId(binId){
-  localStorage.setItem(getBinKey(),binId);
-  setBinInUrl(binId);
 }
 
 // クラウド保存（debounce付き）
@@ -548,46 +532,20 @@ function save(){
 }
 
 async function saveToCloud(){
-  const data=getSaveData();
-  const binId=getBinId();
   try{
-    if(binId){
-      await fetch(`${JBIN_URL}/${binId}`,{
-        method:'PUT',
-        headers:{'Content-Type':'application/json','X-Master-Key':JBIN_KEY},
-        body:JSON.stringify(data)
-      });
-    } else {
-      const res=await fetch(JBIN_URL,{
-        method:'POST',
-        headers:{
-          'Content-Type':'application/json',
-          'X-Master-Key':JBIN_KEY,
-          'X-Bin-Name':USER_ID,
-          'X-Bin-Private':'false'
-        },
-        body:JSON.stringify(data)
-      });
-      const json=await res.json();
-      if(json.metadata?.id){
-        storeBinId(json.metadata.id);
-      }
-    }
+    await fetch(`${API_BASE}/save.php`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({id:USER_ID,payload:getSaveData()})
+    });
   }catch(e){}
 }
 
 async function loadFromCloud(){
-  const binId=getBinId();
-  if(!binId)return null;
-  // BinIDをlocalStorageとURLに保存
-  storeBinId(binId);
   try{
-    const res=await fetch(`${JBIN_URL}/${binId}/latest`,{
-      headers:{'X-Master-Key':JBIN_KEY}
-    });
+    const res=await fetch(`${API_BASE}/load.php?id=${USER_ID}`);
     if(!res.ok)return null;
-    const json=await res.json();
-    return json.record||null;
+    return await res.json();
   }catch(e){return null;}
 }
 
@@ -633,21 +591,12 @@ const S={
 };
 // 起動時：localStorageで即時描画→クラウドで上書き更新
 load();
-// URLにIDがなければ付与（Vercel環境用）
+// URLにIDがなければ付与
 try{
   const params=new URLSearchParams(window.location.search);
-  const url=new URL(window.location.href);
-  let changed=false;
   if(!params.get('id')){
+    const url=new URL(window.location.href);
     url.searchParams.set('id',USER_ID);
-    changed=true;
-  }
-  // URLにbinがある場合はlocalStorageに保存
-  const binFromUrl=params.get('bin');
-  if(binFromUrl){
-    localStorage.setItem(getBinKey(),binFromUrl);
-  }
-  if(changed){
     window.history.replaceState({screen:S.screen},'',url.toString());
   } else {
     window.history.replaceState({screen:S.screen},'',window.location.href);
@@ -933,12 +882,12 @@ function buildSetup(){
       <p>・アプリの内容は予告なく変更・終了する場合があります。</p>
       <div style="font-weight:700;margin-top:14px;margin-bottom:6px;">免責事項</div>
       <p>・本アプリが提示する備蓄量はあくまで目安であり、実際の災害時における安全・生存を保証するものではありません。</p>
-      <p style="margin-top:8px;">・クラウド保存（JSONBin.io）の障害やサービス終了によるデータ消失について、責任を負いかねます。</p>
+      <p style="margin-top:8px;">・サーバー障害やファイル消失によるデータ消失について、責任を負いかねます。</p>
       <p style="margin-top:8px;">・本アプリの利用によって生じた損害について、開発者は一切の責任を負いません。</p>
       <div style="font-weight:700;margin-top:14px;margin-bottom:6px;">プライバシーポリシー</div>
       <p>本アプリが収集・保存するデータは以下の通りです。</p>
       <p style="margin-top:8px;">【収集するデータ】家族構成（年齢区分ごとの人数）、備蓄品の在庫数・目標数・期限、設定情報</p>
-      <p style="margin-top:8px;">【保存先】ブラウザのlocalStorage（端末内）およびJSONBin.io（クラウド）</p>
+      <p style="margin-top:8px;">【保存先】ブラウザのlocalStorage（端末内）および本サービスのサーバー（JSONファイル形式）</p>
       <p style="margin-top:8px;">【第三者提供】収集したデータを第三者に販売・提供することはありません。</p>
       <p style="margin-top:14px;color:#888;">※ 最後までスクロールすると同意できます</p>
     </div>
@@ -1022,6 +971,7 @@ function buildDash(){
     ${S.savedAt?`<div style="color:#777;font-size:13px;margin-top:4px">最終保存: ${new Date(S.savedAt).toLocaleString('ja-JP')}</div>`:''}
     <div style="margin-top:12px;display:flex;gap:16px;font-size:12px;">
       <button onclick="document.getElementById('legal-modal').style.display='flex'" style="background:none;border:none;color:#888;cursor:pointer;font-size:12px;padding:0;font-family:inherit;text-decoration:underline;">利用規約・免責事項・プライバシーポリシー</button>
+      <button onclick="document.getElementById('contact-modal').style.display='flex'" style="background:none;border:none;color:#888;cursor:pointer;font-size:12px;padding:0;font-family:inherit;text-decoration:underline;">お問い合わせ</button>
     </div>
   </div>
   ${alerts.length?`<div class="abox">
