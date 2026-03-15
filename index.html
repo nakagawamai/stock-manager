@@ -519,42 +519,56 @@ function getSaveData(){
 // クラウド保存（debounce付き）
 let saveTimer=null;
 function save(){
-  // localStorageにも即時保存
   try{localStorage.setItem(SK+'_'+USER_ID,JSON.stringify(getSaveData()));}catch(e){}
-  // クラウドは1秒debounce
   clearTimeout(saveTimer);
   saveTimer=setTimeout(saveToCloud,1000);
 }
 
 async function saveToCloud(){
   const data=getSaveData();
-  const binId=localStorage.getItem(getBinKey());
+  let binId=localStorage.getItem(getBinKey());
   try{
     if(binId){
-      // 既存Binを更新
       await fetch(`${JBIN_URL}/${binId}`,{
         method:'PUT',
         headers:{'Content-Type':'application/json','X-Master-Key':JBIN_KEY},
         body:JSON.stringify(data)
       });
     } else {
-      // 新規Bin作成
+      // 新規Bin作成（Bin名にUSER_IDを設定）
       const res=await fetch(JBIN_URL,{
         method:'POST',
-        headers:{'Content-Type':'application/json','X-Master-Key':JBIN_KEY,'X-Bin-Private':'false'},
+        headers:{
+          'Content-Type':'application/json',
+          'X-Master-Key':JBIN_KEY,
+          'X-Bin-Name':USER_ID,
+          'X-Bin-Private':'false'
+        },
         body:JSON.stringify(data)
       });
       const json=await res.json();
       if(json.metadata?.id){
-        localStorage.setItem(getBinKey(),json.metadata.id);
+        binId=json.metadata.id;
+        localStorage.setItem(getBinKey(),binId);
+        // URLにbinIdも付与して別デバイスから直接引けるようにする
+        try{
+          const url=new URL(window.location.href);
+          url.searchParams.set('bin',binId);
+          window.history.replaceState({},'',url.toString());
+        }catch(e){}
       }
     }
-  }catch(e){/* オフライン時はlocalStorageのみ */}
+  }catch(e){}
 }
 
 async function loadFromCloud(){
-  const binId=localStorage.getItem(getBinKey());
+  // URLのbinパラメータ優先（シェア時）→ なければlocalStorage
+  const params=new URLSearchParams(window.location.search);
+  const binFromUrl=params.get('bin');
+  const binId=binFromUrl||localStorage.getItem(getBinKey());
   if(!binId)return null;
+  // binIdをlocalStorageに保存（別デバイスでも以降使えるように）
+  if(binFromUrl)localStorage.setItem(getBinKey(),binFromUrl);
   try{
     const res=await fetch(`${JBIN_URL}/${binId}/latest`,{
       headers:{'X-Master-Key':JBIN_KEY}
